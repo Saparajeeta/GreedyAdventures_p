@@ -4,6 +4,7 @@ import { PackagesSection } from "@/components/experience/PackagesSection";
 import { PlanSection } from "@/components/experience/PlanSection";
 import { HighlightsSection } from "@/components/experience/HighlightsSection";
 import { ChatPlaceholder } from "@/components/experience/ChatPlaceholder";
+import { ChatModal } from "@/components/chat/ChatModal";
 import { Footer } from "@/components/experience/Footer";
 
 export default function ExperiencePage() {
@@ -18,6 +19,7 @@ export default function ExperiencePage() {
         <ChatPlaceholder />
       </main>
       <Footer />
+      <ChatModal />
     </div>
   );
 }

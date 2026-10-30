@@ -22,3 +22,16 @@
 4. The system prompt is constructed containing strictly the retrieved chunks in a `## SOURCES` block and enforcing grounded refusal rules.
 5. In chat mode, `streamText` and `toUIMessageStream` stream tokens and tool calls with attached source metadata; in knowledge test mode, `generateText` executes the same pipeline and returns the full audit trace.
 6. When `MOCK_MODE=true` or API key is absent, `createMockModel` provides deterministic offline answers and tool invocations directly from the sources block.
+
+## Phase 3: Assistant-UI Chat Modal, Tool Cards & Grounded Chatbot
+- **Done**: Built floating `ChatModal` with accessible launcher button, escape key listener, focus restoration, and `#chat-assistant` link triggers. Implemented custom media components (`PdfCard`, `VideoCard`, `UnavailableCard`, `ToolSkeleton`), safe markdown rendering with link allowlisting, and dynamic source chips from message metadata. Registered `getBrochure` and `getVideo` tools with `defineToolkit` and wired `useChatRuntime` to `/api/chat` with dynamic mode detection ("Live: <model>" or "Mock mode").
+- **Decisions**: Passed toolkit to `AuiConfig` and `AssistantRuntimeProvider`. Sourced header logo from `public/logo.png`. Supported retry logic via `useMessageReload` and `useMessageError`.
+- **What's next**: Phase 4 - Knowledge View (`/knowledge` route and `TestPanel` running the live backend pipeline and displaying audit traces).
+
+### How it works
+1. `ChatModal` floats in the lower-right corner and opens via the trigger button or `#chat-assistant` anchor links across the hero and navbar.
+2. Empty chat state displays 4 assignment prompt suggestions that dispatch queries with a single click.
+3. `useChatRuntime` streams assistant messages from `/api/chat`, receiving both markdown text and custom tool call parts.
+4. When `getBrochure` executes, `PdfCard` renders the title, description, "Demo material" badge, and Open/Download buttons.
+5. When `getVideo` executes, `VideoCard` mounts an HTML5 video player with fallback error handling and origin attribution.
+6. Server-sent source metadata is retrieved via `useAuiState` and rendered as clickable source chips directly below the assistant message.

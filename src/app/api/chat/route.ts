@@ -9,9 +9,16 @@ import {
 } from "ai";
 import { ChatBodySchema } from "@/lib/schemas";
 import { prepare } from "@/lib/chat/pipeline";
-import { getModel } from "@/lib/chat/model";
+import { getModel, getModelId, isMockMode } from "@/lib/chat/model";
 
 export const maxDuration = 30;
+
+export async function GET() {
+  return NextResponse.json({
+    mode: isMockMode() ? "mock" : "live",
+    modelId: getModelId(),
+  });
+}
 
 export async function POST(req: NextRequest) {
   let body: unknown;
