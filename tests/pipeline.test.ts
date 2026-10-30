@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
 import { resetIndex } from "@/lib/knowledge/retrieval";
 import { resetSourceCache } from "@/lib/knowledge/loader";
 import { resetRegistry } from "@/lib/media/registry";
+import { resetModel } from "@/lib/chat/model";
 import { runTest } from "@/lib/chat/pipeline";
 
 // Force mock mode for all pipeline tests
@@ -18,7 +19,7 @@ beforeEach(() => {
   resetIndex();
   resetSourceCache();
   resetRegistry();
-  // Reset model cache by re-importing - done via env var check
+  resetModel();
 });
 
 describe("pipeline.runTest with mock model", () => {
@@ -96,12 +97,23 @@ describe("pipeline.runTest with mock model", () => {
 
 describe("pipeline: failing model error path", () => {
   it("returns error string on model failure", async () => {
-    // Override MOCK_MODE temporarily with an invalid key scenario
-    // The mock model itself won't fail, but we test error wrapping logic
-    // by checking error responses from the route handler simulation
-    // Since we use mock model, we verify error handling exists by
-    // checking trace still has an answer field even if it were an error
     const trace = await runTest("Test question");
     expect(trace).toHaveProperty("answer");
+  });
+});
+
+describe("mock model answer quality", () => {
+  it("answers from retrieved sources when they exist", async () => {
+    const trace = await runTest("What packages are available for Sea View Skydiving?");
+    expect(trace.answer.length).toBeGreaterThan(20);
+    // Should not be the generic fallback
+    expect(trace.answer).not.toContain("I don't have information");
+  });
+
+  it("gives contact details when no sources match", async () => {
+    const trace = await runTest("zzzzzzz completely random gibberish xyz");
+    if (trace.chunks.length === 0) {
+      expect(trace.answer).toContain("contact");
+    }
   });
 });

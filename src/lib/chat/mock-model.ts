@@ -37,14 +37,19 @@ export function createMockModel(): LanguageModelV4 {
       let sourcesText = "";
       const systemMsg = messages.find((m) => m.role === "system");
       if (systemMsg) {
-        const sysContent = Array.isArray(systemMsg.content)
-          ? systemMsg.content
-              .filter((c) => c.type === "text")
-              .map((c) => (c as { type: "text"; text: string }).text)
-              .join("")
-          : "";
-        const sourcesMatch = sysContent.match(/## SOURCES\n([\s\S]*?)(?:##|$)/);
-        if (sourcesMatch) sourcesText = sourcesMatch[1].trim();
+        const sysContent =
+          typeof systemMsg.content === "string"
+            ? systemMsg.content
+            : Array.isArray(systemMsg.content)
+            ? systemMsg.content
+                .filter((c) => c.type === "text")
+                .map((c) => (c as { type: "text"; text: string }).text)
+                .join("")
+            : "";
+        const idx = sysContent.indexOf("## SOURCES");
+        if (idx !== -1) {
+          sourcesText = sysContent.substring(idx + "## SOURCES".length).trim();
+        }
       }
 
       const lowerQuery = lastUserText.toLowerCase();
@@ -80,20 +85,21 @@ export function createMockModel(): LanguageModelV4 {
       let answer = "";
       if (wantsBrochure || wantsVideo) {
         answer = "Here is the requested media for Sea View Skydiving.";
-      } else if (sourcesText) {
-        // Extract first relevant sentence(s) from sources as a deterministic reply
-        const lines = sourcesText
+      } else if (sourcesText && !sourcesText.startsWith("(No relevant")) {
+        // Use the first chunk: lines before the next "---" separator or end
+        const firstChunk = sourcesText.split(/\n---\n/)[0].trim();
+        const lines = firstChunk
           .split("\n")
           .map((l) => l.trim())
-          .filter(Boolean);
-        answer = lines.slice(0, 3).join(" ").slice(0, 400);
+          .filter((l) => l && !l.startsWith("###") && !l.startsWith("URL:"));
+        answer = lines.slice(0, 4).join(" ").slice(0, 500);
         if (!answer) {
           answer =
             "I can answer questions about Sea View Skydiving from my knowledge base.";
         }
       } else {
         answer =
-          "No relevant information found. Please contact Greedy Adventures directly for assistance.";
+          "I don't have information about that in my sources. Please contact Greedy Adventures at crew@greedyadventures.com or +66 61 585 0055.";
       }
 
       content.push({ type: "text", text: answer });
