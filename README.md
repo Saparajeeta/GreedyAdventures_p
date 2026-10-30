@@ -188,7 +188,7 @@ Run the automated test suite with:
 npm test
 ```
 
-The 51 tests cover:
+The 54 tests cover:
 - Intent detection keywords and false-positive guards (`tests/intent.test.ts`)
 - BM25 retrieval ranking and short follow-up query expansion (`tests/retrieval.test.ts`)
 - Media registry lookups and URL allowlist enforcement (`tests/registry.test.ts`)

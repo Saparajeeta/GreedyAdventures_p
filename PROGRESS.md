@@ -73,9 +73,9 @@
 - [ ] **Output Directory**: `.next` (default).
 - [ ] **Environment Variables**:
   - `GOOGLE_GENERATIVE_AI_API_KEY`: Set your production Google Gemini API key (optional for live mode; if omitted, the app operates in offline mock mode).
-  - `GEMINI_MODEL`: `gemini-2.0-flash` (default).
+  - `GEMINI_MODEL`: `gemini-3.8-flash` (default).
   - `MOCK_MODE`: `false` (or `true` to force mock mode).
-- [ ] **Route Handler Max Duration**: Ensure plan supports `maxDuration = 30` (included in `/api/chat/route.ts`).
+- [ ] **Route Handler Max Duration**: Ensure plan supports `maxDuration = 30` (configured in `/api/chat/route.ts` and `/api/knowledge/test/route.ts`).
 - [ ] **Images Remote Patterns**: Verify `next.config.ts` has remote patterns for `greedyadventures.com` and `pub-89f493a2b50b4e43b99552a737bef138.r2.dev`.
 - [ ] **Post-Deploy Smoke Test**:
   1. Open production deployment URL and verify hero and package cards render correctly.

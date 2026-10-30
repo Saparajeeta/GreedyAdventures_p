@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { KnowledgeTestBodySchema } from "@/lib/schemas";
 import { runTest } from "@/lib/chat/pipeline";
 
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest) {
   let body: unknown;
   try {

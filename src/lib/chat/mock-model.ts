@@ -44,13 +44,14 @@ export function createMockModel(): LanguageModelV4 {
       let sourcesText = "";
       const systemMsg = messages.find((m) => m.role === "system");
       if (systemMsg) {
+        const rawContent = (systemMsg as { content?: unknown }).content;
         const sysContent =
-          typeof systemMsg.content === "string"
-            ? systemMsg.content
-            : Array.isArray(systemMsg.content)
-            ? systemMsg.content
+          typeof rawContent === "string"
+            ? rawContent
+            : Array.isArray(rawContent)
+            ? (rawContent as Array<{ type?: string; text?: string }>)
                 .filter((c) => c.type === "text")
-                .map((c) => (c as { type: "text"; text: string }).text)
+                .map((c) => c.text ?? "")
                 .join("")
             : "";
         const idx = sysContent.indexOf("## SOURCES");
