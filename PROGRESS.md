@@ -48,3 +48,40 @@
 4. The backend runs the exact same BM25 retrieval and preparation pipeline as live chat, returning the trace without storing anything.
 5. `TestPanel` visualizes the ranked chunk scores, matched intent rule keywords, and selected PDF/video or "none".
 6. The exact prompt string sent to the language model is exposed inside an inspectable `<pre>` container.
+
+## Phase 5: Polish, Accessibility Audit, Documentation & Vercel Checklist
+- **Done**: Audited keyboard focus order, aria roles (`role="dialog"`, `aria-live="polite"`), color contrast ratios, reduced motion styles, and responsive 360px viewport behavior. Verified zero forbidden words and eliminated em dashes. Wrote complete `README.md` covering setup, architecture flow diagram, verification steps, limitations, design decisions, and credits. Committed `.env.example` with clean template variables.
+- **Decisions**: Verified strict `.gitignore` isolation preventing secret leaks (`git check-ignore .env.local` passing).
+- **What's next**: Push commits to GitHub repository `https://github.com/Saparajeeta/GreedyAdventures_p`.
+
+### How it works
+1. Accessibility is validated across keyboard navigation: skip link targets `#main-content`, and focus returns to the launcher button on modal exit.
+2. The UI conforms to high-contrast WCAG AA standards with custom brand palette `#12313f` and slate accents.
+3. Chat stream text is announced politely to screen readers without disruptive layout shifts.
+4. Production build runs typecheck and linting on every commit, ensuring clean zero-error outputs.
+5. All environment variables are read server-side only and never exposed in client bundles.
+6. The Vercel deployment workflow verifies build artifacts, routes, and environment variable bindings.
+
+---
+
+## Vercel Deployment Checklist
+
+- [ ] **Repository Linking**: Connect GitHub repo `https://github.com/Saparajeeta/GreedyAdventures_p` to a new Vercel project.
+- [ ] **Framework Preset**: Verify Framework Preset is set to `Next.js`.
+- [ ] **Root Directory**: Confirm root directory is `./` (default).
+- [ ] **Build Command**: `next build` (or `npm run build`).
+- [ ] **Output Directory**: `.next` (default).
+- [ ] **Environment Variables**:
+  - `GOOGLE_GENERATIVE_AI_API_KEY`: Set your production Google Gemini API key (optional for live mode; if omitted, the app operates in offline mock mode).
+  - `GEMINI_MODEL`: `gemini-2.0-flash` (default).
+  - `MOCK_MODE`: `false` (or `true` to force mock mode).
+- [ ] **Route Handler Max Duration**: Ensure plan supports `maxDuration = 30` (included in `/api/chat/route.ts`).
+- [ ] **Images Remote Patterns**: Verify `next.config.ts` has remote patterns for `greedyadventures.com` and `pub-89f493a2b50b4e43b99552a737bef138.r2.dev`.
+- [ ] **Post-Deploy Smoke Test**:
+  1. Open production deployment URL and verify hero and package cards render correctly.
+  2. Click "Ask our assistant" button and confirm floating chat modal opens.
+  3. Send test prompt "What is included in the packages?" and verify text response and source chips.
+  4. Send "Send me a brochure" and verify PDF card displays with working Open and Download buttons.
+  5. Send "Can I see a video of the jump?" and verify HTML5 video player loads.
+  6. Navigate to `/knowledge` and confirm 7 verified sources are listed.
+  7. Run a query in the `/knowledge` Test Panel and verify trace metadata, BM25 scores, and context display.
