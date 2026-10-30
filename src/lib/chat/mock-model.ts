@@ -25,9 +25,16 @@ export function createMockModel(): LanguageModelV4 {
       for (let i = messages.length - 1; i >= 0; i--) {
         const msg = messages[i];
         if (msg.role === "user") {
-          const textPart = msg.content.find((c) => c.type === "text");
-          if (textPart && textPart.type === "text") {
-            lastUserText = textPart.text;
+          if (typeof msg.content === "string") {
+            lastUserText = msg.content;
+          } else if (Array.isArray(msg.content)) {
+            const textPart = msg.content.find(
+              (c): c is { type: "text"; text: string } =>
+                (c as { type?: string }).type === "text"
+            );
+            if (textPart) {
+              lastUserText = textPart.text;
+            }
           }
           break;
         }
@@ -54,11 +61,16 @@ export function createMockModel(): LanguageModelV4 {
 
       const lowerQuery = lastUserText.toLowerCase();
 
+      // Check if tools were already executed in a previous step of this multi-step turn
+      const alreadyCalledTools = messages.some((m) => m.role === "tool");
+
       // Decide which tools to call
       const wantsBrochure =
+        !alreadyCalledTools &&
         toolNames.includes("getBrochure") &&
         /brochure|pdf|flyer|leaflet/.test(lowerQuery);
       const wantsVideo =
+        !alreadyCalledTools &&
         toolNames.includes("getVideo") &&
         /video|footage|clip|watch/.test(lowerQuery);
 
@@ -81,10 +93,26 @@ export function createMockModel(): LanguageModelV4 {
         });
       }
 
-      // Generate answer from sources
-      let answer = "";
+      // If calling tools in this step, don't emit text yet (AI SDK will loop for step 2)
       if (wantsBrochure || wantsVideo) {
+        return {
+          content,
+          finishReason: { unified: "tool-calls", raw: "tool_calls" },
+          usage: {
+            inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 },
+            outputTokens: { total: 0, text: 0, reasoning: 0 },
+          },
+          warnings: [],
+        };
+      }
+
+      // Generate answer
+      let answer = "";
+      if (alreadyCalledTools) {
         answer = "Here is the requested media for Sea View Skydiving.";
+      } else if (/weight|kg|heavy/.test(lowerQuery)) {
+        answer =
+          "Weight limits are not listed in our Sea View Skydiving sources. Please contact the Greedy Adventures crew directly at crew@greedyadventures.com or +66 61 585 0055.";
       } else if (sourcesText && !sourcesText.startsWith("(No relevant")) {
         // Use the first chunk: lines before the next "---" separator or end
         const firstChunk = sourcesText.split(/\n---\n/)[0].trim();

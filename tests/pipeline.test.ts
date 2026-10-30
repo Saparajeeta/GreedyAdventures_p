@@ -116,4 +116,10 @@ describe("mock model answer quality", () => {
       expect(trace.answer).toContain("contact");
     }
   });
+
+  it("weight question refuses without inventing numbers and gives contact info", async () => {
+    const trace = await runTest("What is the maximum weight limit?");
+    expect(trace.answer.toLowerCase()).toContain("contact");
+    expect(trace.answer).not.toMatch(/\b\d+\s*(kg|lbs|pounds)\b/i);
+  });
 });
