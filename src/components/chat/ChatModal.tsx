@@ -52,7 +52,7 @@ export function ChatModal() {
     };
   }, []);
 
-  // Open modal if user clicks on any link pointing to #chat-assistant
+  // Open modal if user clicks on any link pointing to #chat-assistant or dispatches ask-assistant
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       const target = (e.target as HTMLElement)?.closest('a[href="#chat-assistant"]');
@@ -61,11 +61,22 @@ export function ChatModal() {
         setIsOpen(true);
       }
     }
+
+    function handleAsk(e: Event) {
+      const customEvent = e as CustomEvent<{ prompt?: string }>;
+      setIsOpen(true);
+      if (customEvent.detail?.prompt) {
+        runtime.thread.append(customEvent.detail.prompt);
+      }
+    }
+
     document.addEventListener("click", handleClick);
+    window.addEventListener("ask-assistant", handleAsk);
     return () => {
       document.removeEventListener("click", handleClick);
+      window.removeEventListener("ask-assistant", handleAsk);
     };
-  }, []);
+  }, [runtime]);
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape" && isOpen) {
