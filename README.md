@@ -40,8 +40,8 @@ Edit `.env.local` with your configuration:
 # Optional: Google Gemini API key. If omitted, the app runs in deterministic mock mode.
 GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
 
-# Model identifier (default: gemini-2.0-flash)
-GEMINI_MODEL=gemini-2.0-flash
+# Model identifier (default: gemini-3.8-flash)
+GEMINI_MODEL=gemini-3.8-flash
 
 # Force mock mode even if an API key is present: true | false
 MOCK_MODE=false
@@ -78,7 +78,7 @@ npm start
 | Variable | Required | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | No | `""` | Gemini API key. If unset or empty, the app defaults to deterministic mock mode. |
-| `GEMINI_MODEL` | No | `gemini-2.0-flash` | The Gemini model name passed to `@ai-sdk/google`. |
+| `GEMINI_MODEL` | No | `gemini-3.8-flash` | The Gemini model name passed to `@ai-sdk/google`. |
 | `MOCK_MODE` | No | `false` | When set to `true`, forces the offline mock model regardless of API key presence. |
 
 ---
@@ -128,7 +128,7 @@ Runtime web crawling is disabled. If a fact is absent from these sources (such a
        v
 [Model Execution]
        |-- If MOCK_MODE or no API key -> Deterministic Mock Model
-       |-- If Live Key -> Google Gemini (gemini-2.0-flash)
+       |-- If Live Key -> Google Gemini (configurable, default gemini-3.8-flash)
        |
        v
 [Response Stream]
