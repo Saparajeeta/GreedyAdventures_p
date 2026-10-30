@@ -15,7 +15,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Sea View Skydiving — Tandem Jump over Pattaya | Greedy Adventures",
+  title: "Sea View Skydiving: Tandem Jump over Pattaya | Greedy Adventures",
   description: "Experience a premier coastal tandem skydive from 13,000 ft over Pattaya with USPA-certified instructors and Gulf of Thailand ocean views.",
 };
 
