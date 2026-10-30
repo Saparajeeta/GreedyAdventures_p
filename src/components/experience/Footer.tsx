@@ -76,7 +76,7 @@ export function Footer() {
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               All PDF brochures are generated as <strong className="text-slate-200">Demo material</strong> based
-              strictly on verified page facts. Unlisted requirements (e.g. strict medical or weight limits) are purposely unanswerable to ensure strict hallucination prevention.
+              strictly on verified page facts.
             </p>
           </div>
         </div>

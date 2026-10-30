@@ -117,9 +117,15 @@ describe("mock model answer quality", () => {
     }
   });
 
-  it("weight question refuses without inventing numbers and gives contact info", async () => {
-    const trace = await runTest("What is the maximum weight limit?");
-    expect(trace.answer.toLowerCase()).toContain("contact");
-    expect(trace.answer).not.toMatch(/\b\d+\s*(kg|lbs|pounds)\b/i);
+  it("weight question answers from contact.md sources", async () => {
+    const trace = await runTest("What is the weight limit for a tandem jump?");
+    expect(trace.answer).toMatch(/100\s*kg/i);
+    const hasContact = trace.chunks.some((c) => c.url.includes("/contact"));
+    expect(hasContact).toBe(true);
+  });
+
+  it("missing information like parking says it is not listed", async () => {
+    const trace = await runTest("Is parking available at the dropzone?");
+    expect(trace.answer.toLowerCase()).toContain("not listed");
   });
 });

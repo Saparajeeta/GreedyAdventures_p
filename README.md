@@ -95,7 +95,7 @@ All knowledge usable by the chatbot comes from static markdown snapshots capture
 6. `contact.md` - Official email (crew@greedyadventures.com), phone (+66 61 585 0055), and dropzone address.
 7. `about.md` - Company background and safety philosophy.
 
-Runtime web crawling is disabled. If a fact is absent from these sources (such as strict passenger weight limits or minimum age rules), the assistant explicitly states that the detail is not listed and directs users to contact the crew.
+Runtime web crawling is disabled. If a fact is absent from these sources (such as dropzone parking availability), the assistant explicitly states that the detail is not listed and directs users to contact the crew.
 
 ---
 
@@ -171,10 +171,14 @@ The read-only knowledge dashboard can be accessed in two ways:
 - **Expected Outcome**: Both `getBrochure` and `getVideo` tools are executed, rendering the brochure card and video player in the same response.
 
 ### 6. Missing Information Handling
-- **Query**: "What is the maximum weight limit for a jump?"
-- **Expected Outcome**: The assistant confirms that weight restrictions are not specified in the official site sources and provides the official contact details (`crew@greedyadventures.com` or `+66 61 585 0055`). It does not invent numbers.
+- **Query**: "Is parking available at the dropzone?"
+- **Expected Outcome**: The assistant confirms that parking information is not listed in the website sources and directs the user to contact the crew.
 
-### 7. Failure Handling
+### 7. Weight and Age Limits
+- **Query**: "What is the weight limit for a tandem jump?"
+- **Expected Outcome**: The assistant answers from `contact.md` that the tandem skydiving weight limit is 100 kg (with valid ID, age 18 or older), noting weight must be proportional to height.
+
+### 8. Failure Handling
 - **Query**: Simulate rate limits or network errors.
 - **Expected Outcome**: The chat surfaces a clear error notice with a functional "Retry" button.
 
@@ -188,7 +192,7 @@ Run the automated test suite with:
 npm test
 ```
 
-The 54 tests cover:
+The 55 tests cover:
 - Intent detection keywords and false-positive guards (`tests/intent.test.ts`)
 - BM25 retrieval ranking and short follow-up query expansion (`tests/retrieval.test.ts`)
 - Media registry lookups and URL allowlist enforcement (`tests/registry.test.ts`)

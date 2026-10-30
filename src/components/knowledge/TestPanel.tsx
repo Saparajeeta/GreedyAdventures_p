@@ -32,7 +32,8 @@ const SAMPLE_QUESTIONS = [
   "Send me a brochure",
   "Can I see a video of the jump?",
   "Send me a brochure and a video",
-  "What is the maximum weight limit?",
+  "What is the weight limit for a tandem jump?",
+  "Is parking available at the dropzone?",
 ];
 
 export function TestPanel() {

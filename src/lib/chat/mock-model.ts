@@ -111,9 +111,9 @@ export function createMockModel(): LanguageModelV4 {
       let answer = "";
       if (alreadyCalledTools) {
         answer = "Here is the requested media for Sea View Skydiving.";
-      } else if (/weight|kg|heavy/.test(lowerQuery)) {
+      } else if (/parking|park your car/.test(lowerQuery)) {
         answer =
-          "Weight limits are not listed in our Sea View Skydiving sources. Please contact the Greedy Adventures crew directly at crew@greedyadventures.com or +66 61 585 0055.";
+          "Information about parking is not listed in our website sources. Please contact the Greedy Adventures crew directly on WhatsApp or call +91 95357 68554 for assistance.";
       } else if (sourcesText && !sourcesText.startsWith("(No relevant")) {
         // Use the first chunk: lines before the next "---" separator or end
         const firstChunk = sourcesText.split(/\n---\n/)[0].trim();
@@ -121,14 +121,22 @@ export function createMockModel(): LanguageModelV4 {
           .split("\n")
           .map((l) => l.trim())
           .filter((l) => l && !l.startsWith("###") && !l.startsWith("URL:"));
-        answer = lines.slice(0, 4).join(" ").slice(0, 500);
+
+        // If a line in the chunk directly matches the query topic, start from that line
+        const matchingLineIdx = lines.findIndex((l) =>
+          lowerQuery
+            .split(/\s+/)
+            .some((w) => w.length > 3 && l.toLowerCase().includes(w))
+        );
+        const startIdx = matchingLineIdx !== -1 ? matchingLineIdx : 0;
+        answer = lines.slice(startIdx, startIdx + 4).join(" ").slice(0, 500);
         if (!answer) {
           answer =
             "I can answer questions about Sea View Skydiving from my knowledge base.";
         }
       } else {
         answer =
-          "I don't have information about that in my sources. Please contact Greedy Adventures at crew@greedyadventures.com or +66 61 585 0055.";
+          "I don't have information about that in my sources. Please contact Greedy Adventures on WhatsApp or call +91 95357 68554.";
       }
 
       content.push({ type: "text", text: answer });
