@@ -76,7 +76,7 @@ export function ChatPlaceholder() {
                 <span>Video Reel</span>
               </div>
               <p className="mt-1 text-xs text-slate-300">
-                &ldquo;Can I see a video?&rdquo; &rarr; Direct 4K jump video player.
+                &ldquo;Can I see a video?&rdquo; &rarr; Direct jump video player.
               </p>
             </div>
           </div>

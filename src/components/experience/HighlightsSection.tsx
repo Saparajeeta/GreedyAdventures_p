@@ -114,7 +114,7 @@ export function HighlightsSection() {
                 <h3 className="font-serif text-lg font-bold">Download Brochure</h3>
               </div>
               <p className="text-xs text-slate-600 mb-3">
-                Download the official experience overview sheet containing real package prices and the 5-step plan.
+                Download the sample brochure built from the page facts containing real package prices and the 5-step plan.
               </p>
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded">

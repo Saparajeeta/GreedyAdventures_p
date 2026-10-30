@@ -12,20 +12,11 @@ export function Footer() {
               Greedy Adventures
             </div>
             <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
-              Content and media from{" "}
-              <a
-                href="https://www.greedyadventures.com/experiences/sea-view-skydiving"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand-amber underline hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-amber rounded"
-              >
-                greedyadventures.com
-              </a>
-              , used for a take-home prototype.
+              Take-home prototype. Content and media belong to Greedy Adventures.
             </p>
             <div className="inline-flex items-center gap-2 rounded bg-white/5 px-2.5 py-1 text-xs text-slate-300 border border-white/10">
               <ShieldCheck className="w-3.5 h-3.5 text-brand-amber" aria-hidden="true" />
-              <span>Take-Home Prototype * Read-Only Grounded Knowledge</span>
+              <span>Take-Home Prototype • Read-Only Grounded Knowledge</span>
             </div>
           </div>
 

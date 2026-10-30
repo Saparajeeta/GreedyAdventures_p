@@ -25,7 +25,7 @@ export function HeroSection() {
         <div className="max-w-3xl space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-brand-amber/40 bg-brand-amber/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-brand-amber backdrop-blur-sm">
             <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Dropzone Thailand * USPA-Certified Instructors</span>
+            <span>Dropzone Thailand • USPA-Certified Instructors</span>
           </div>
 
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.08]">
@@ -68,7 +68,7 @@ export function HeroSection() {
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white">
                 <Play className="w-3 h-3 fill-current ml-0.5" aria-hidden="true" />
               </span>
-              <span>Watch jump video (1 min)</span>
+              <span>Watch jump video</span>
             </a>
           </div>
         </div>
