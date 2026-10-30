@@ -90,3 +90,6 @@
 
 ## Source Alignment & Copy Verification
 - **Done**: Grounded weight/age questions in `contact.md` (100 kg, 18+ with ID) and Mount Abu sources. Removed "purposely unanswerable" references across README, footer notice, test chips, and mock model. Added verification for unlisted parking questions. Restricted contact details strictly to verbatim sources (+91 95357 68554 and WhatsApp) in system prompt and docs. Cleaned page copy, removed stray asterisk in hero badge, and added retrieval test for weight chunk. All 55 tests pass and Next.js production build succeeds with 0 errors.
+
+## Task 2: Chatbot Answer Quality & Source Cleanup
+- **Done**: Cleaned navigation boilerplate from all 7 source snapshots. Added location tags (Pattaya, Mount Abu, General) to chunks in retrieval. Updated system prompt with location-aware rules. Merged Mount Abu packages into a single flat chunk for BM25 retrieval. Increased max chunk size from 800 to 1000 chars. Updated `about.md` to mention "skydiving" explicitly. Added 18 benchmark retrieval tests (all pass). Updated footer link text from `/knowledge` to "Knowledge view". Updated README test count to 73 and chunk size references. All 73 tests pass.

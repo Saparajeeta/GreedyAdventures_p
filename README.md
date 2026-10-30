@@ -115,7 +115,7 @@ Runtime web crawling is disabled. If a fact is absent from these sources (such a
        |     Active Tools (getBrochure, getVideo)
        |
        +---> [BM25 Retrieval]
-                  |-- Heading-based chunking (<=800 chars)
+                  |-- Heading-based chunking (<=1000 chars)
                   |-- Stopword filtering and scoring (k1=1.2, b=0.75)
                   v
              Top 4 Ranked Chunks
@@ -192,9 +192,10 @@ Run the automated test suite with:
 npm test
 ```
 
-The 55 tests cover:
+The 73 tests cover:
 - Intent detection keywords and false-positive guards (`tests/intent.test.ts`)
 - BM25 retrieval ranking and short follow-up query expansion (`tests/retrieval.test.ts`)
+- 18 benchmark question retrieval accuracy with location tagging (`tests/retrieval-cases.test.ts`)
 - Media registry lookups and URL allowlist enforcement (`tests/registry.test.ts`)
 - Zod request body validation (`tests/schemas.test.ts`)
 - Mock model pipeline across the four assignment prompts (`tests/pipeline.test.ts`)
@@ -209,7 +210,7 @@ The 55 tests cover:
 | Framework | Next.js App Router (15.5) | Server components for knowledge listings and streaming route handlers for AI chat. |
 | AI Integration | AI SDK v7 + assistant-ui | Uses official UI primitives (`ThreadPrimitive`, `ComposerPrimitive`) with custom tool rendering. |
 | Search Engine | In-Memory BM25 | Fast, zero external database dependency, and deterministic scoring. |
-| Chunking Strategy | Heading-based split (<=800 chars) | Preserves semantic section titles and hierarchy from markdown files. |
+| Chunking Strategy | Heading-based split (<=1000 chars) | Preserves semantic section titles and hierarchy from markdown files. |
 | Media Delivery | Client-side Tool Cards | Displays interactive PDF and video components instead of raw URLs in text. |
 | Fallback Mode | Deterministic Mock Model | Allows complete offline evaluation and continuous integration without API credentials. |
 | Audit Storage | Ephemeral Per-Request Trace | Trace is returned only to the test caller. No global trace database is maintained. |

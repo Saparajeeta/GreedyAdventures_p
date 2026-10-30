@@ -1,21 +1,41 @@
 import { type SourceDocument } from "@/lib/schemas";
 
+export type LocationLabel = "Pattaya" | "Mount Abu" | "General";
+
 export interface Chunk {
   id: string;
   sourceId: string;
   sourceTitle: string;
   sourceUrl: string;
+  location: LocationLabel;
   heading: string;
   text: string;
 }
 
-const MAX_CHUNK_CHARS = 800;
+const MAX_CHUNK_CHARS = 1000;
+
+export function determineLocation(doc: SourceDocument): LocationLabel {
+  const id = doc.id.toLowerCase();
+  const url = doc.url.toLowerCase();
+  if (id.includes("mount-abu") || url.includes("mount-abu")) return "Mount Abu";
+  if (
+    id.includes("sea-view") ||
+    url.includes("sea-view") ||
+    id.includes("pattaya") ||
+    url.includes("pattaya") ||
+    id.includes("contact")
+  ) {
+    return "Pattaya";
+  }
+  return "General";
+}
 
 /**
  * Split a source document into chunks by markdown heading (## or ###).
  * Each chunk is <= MAX_CHUNK_CHARS characters. Heading text becomes the chunk heading.
  */
 export function chunkDocument(doc: SourceDocument): Chunk[] {
+  const location = determineLocation(doc);
   const lines = doc.text.split("\n");
   const chunks: Chunk[] = [];
 
@@ -35,6 +55,7 @@ export function chunkDocument(doc: SourceDocument): Chunk[] {
         sourceId: doc.id,
         sourceTitle: doc.title,
         sourceUrl: doc.url,
+        location,
         heading: currentHeading,
         text: segment,
       });

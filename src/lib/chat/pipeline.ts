@@ -24,6 +24,7 @@ export interface TraceResult {
   chunks: Array<{
     title: string;
     url: string;
+    location?: string;
     heading: string;
     score: number;
     text: string;
@@ -70,17 +71,24 @@ function buildSourcesBlock(chunks: RetrievedChunk[]): string {
   }
 
   const parts = chunks.map((c) => {
-    return `### ${c.sourceTitle} — ${c.heading}\nURL: ${c.sourceUrl}\n\n${c.text}`;
+    return `### [Location: ${c.location}] ${c.sourceTitle} — ${c.heading}\nURL: ${c.sourceUrl}\n\n${c.text}`;
   });
 
   return `## SOURCES\n${parts.join("\n\n---\n\n")}`;
 }
 
 function buildSystemPrompt(sourcesBlock: string): string {
-  return `You are the Sea View Skydiving assistant for Greedy Adventures. Answer ONLY from the sources provided below.
+  return `You are the Sea View Skydiving assistant for Greedy Adventures in Pattaya, Thailand. Answer ONLY from the sources provided below.
 
 Rules:
-- If nothing in the SOURCES answers the question, say so plainly and direct the user to contact Greedy Adventures. Use only contact details found word for word in the SOURCES.
+- This assistant is for Sea View Skydiving in Pattaya, Thailand. Treat questions as about Pattaya unless the user explicitly names Mount Abu or India.
+- Never mix prices, currencies or limits from different locations.
+- If the sources cover both locations and the question is ambiguous, answer for Pattaya and say Mount Abu differs.
+- Answer in short friendly plain sentences.
+- When listing packages, use a short bullet list.
+- Quote prices exactly with currency symbol (฿ for Pattaya, ₹ for Mount Abu).
+- When sources disagree say so and suggest checking with the crew.
+- If nothing in the SOURCES answers the question, say so plainly and direct the user to contact Greedy Adventures. Use only contact details (phone/WhatsApp) found word for word in the SOURCES.
 - Never invent prices, limits, dates, policies, or contact details.
 - Be concise.
 - For media requests: call the appropriate tool, then add one short descriptive sentence.
@@ -218,6 +226,7 @@ export async function runTest(question: string): Promise<TraceResult> {
     chunks: ctx.chunks.map((c) => ({
       title: c.sourceTitle,
       url: c.sourceUrl,
+      location: c.location,
       heading: c.heading,
       score: c.score,
       text: c.text,

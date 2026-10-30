@@ -80,7 +80,7 @@ export function Footer() {
               href="/knowledge"
               className="text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-amber rounded"
             >
-              /knowledge
+              Knowledge view
             </Link>
             <a
               href="https://www.greedyadventures.com/cancellations"

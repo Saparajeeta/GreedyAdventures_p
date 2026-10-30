@@ -1,5 +1,5 @@
 import { loadSources } from "./loader";
-import { chunkAllSources, type Chunk } from "./chunker";
+import { chunkAllSources, type Chunk, type LocationLabel } from "./chunker";
 
 // English stopwords for BM25
 const STOPWORDS = new Set([
@@ -73,6 +73,7 @@ export interface RetrievedChunk {
   sourceId: string;
   sourceTitle: string;
   sourceUrl: string;
+  location: LocationLabel;
   heading: string;
   text: string;
   score: number;
@@ -108,6 +109,7 @@ export function retrieve(query: string, k = 4): RetrievedChunk[] {
       sourceId: chunk.sourceId,
       sourceTitle: chunk.sourceTitle,
       sourceUrl: chunk.sourceUrl,
+      location: chunk.location,
       heading: chunk.heading,
       text: chunk.text,
       score,
