@@ -11,7 +11,7 @@ const ALLOWED_PATH_PREFIX = "/media/";
 
 let _items: MediaItem[] | null = null;
 
-function loadRegistry(): MediaItem[] {
+export function loadRegistry(): MediaItem[] {
   if (_items) return _items;
 
   const raw = fs.readFileSync(

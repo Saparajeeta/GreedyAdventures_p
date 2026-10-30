@@ -35,3 +35,16 @@
 4. When `getBrochure` executes, `PdfCard` renders the title, description, "Demo material" badge, and Open/Download buttons.
 5. When `getVideo` executes, `VideoCard` mounts an HTML5 video player with fallback error handling and origin attribution.
 6. Server-sent source metadata is retrieved via `useAuiState` and rendered as clickable source chips directly below the assistant message.
+
+## Phase 4: Read-Only Knowledge View & Pipeline Test Panel
+- **Done**: Created server-rendered `/knowledge` route displaying 7 verified knowledge sources with captured dates, chunk counts, and collapsible full text views. Displayed media registry with demo/real badges and URLs. Built client `TestPanel` with 300-char input, prompt suggestion chips, loading and error states, execution metadata (mode, model, latency), matched keyword badges, BM25 chunk scoring cards, selected media output, and full prompt snippet in a `<pre>` block.
+- **Decisions**: Marked `/knowledge` as `force-dynamic` to read fresh disk sources on request. Maintained isolation by displaying only the single on-demand test execution trace with zero persistent storage of chats.
+- **What's next**: Phase 5 - Polish, Accessibility audit, README documentation, Vercel deployment checklist, and Git commits.
+
+### How it works
+1. The `/knowledge` page executes server-side, reading local markdown snapshots from `data/sources/` and media items from `data/media.json`.
+2. Each source displays its YAML frontmatter capture date, URL, chunk count, and complete text in a collapsible `<details>` element.
+3. The interactive `TestPanel` component submits queries directly to `POST /api/knowledge/test` with 300-character validation.
+4. The backend runs the exact same BM25 retrieval and preparation pipeline as live chat, returning the trace without storing anything.
+5. `TestPanel` visualizes the ranked chunk scores, matched intent rule keywords, and selected PDF/video or "none".
+6. The exact prompt string sent to the language model is exposed inside an inspectable `<pre>` container.
