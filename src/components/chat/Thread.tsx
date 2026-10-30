@@ -30,11 +30,13 @@ function UserMessage() {
   );
 }
 
+const EMPTY_SOURCES: SourceItem[] = [];
+
 function AssistantMessage() {
   const sources = useAuiState((s) => {
     const raw = (s as unknown as { message?: { metadata?: { custom?: { sources?: SourceItem[] } } } })
       ?.message?.metadata?.custom?.sources;
-    return Array.isArray(raw) ? raw : [];
+    return Array.isArray(raw) ? raw : EMPTY_SOURCES;
   });
 
   const error = useMessageError();

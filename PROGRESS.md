@@ -51,7 +51,7 @@
 
 ## Phase 5: Polish, Accessibility Audit, Documentation & Vercel Checklist
 - **Done**: Audited keyboard focus order, aria roles (`role="dialog"`, `aria-live="polite"`), color contrast ratios, reduced motion styles, and responsive 360px viewport behavior. Verified zero forbidden words and eliminated em dashes. Wrote complete `README.md` covering setup, architecture flow diagram, verification steps, limitations, design decisions, and credits. Committed `.env.example` with clean template variables.
-- **Decisions**: Verified strict `.gitignore` isolation preventing secret leaks (`git check-ignore .env.local` passing).
+- **Decisions**: Verified strict `.gitignore` isolation preventing secret leaks (`git check-ignore .env.local` passing). Cached empty sources fallback array (`EMPTY_SOURCES`) at module level to guarantee stable selector reference for `useAuiState` in `AssistantMessage`.
 - **What's next**: Push commits to GitHub repository `https://github.com/Saparajeeta/GreedyAdventures_p`.
 
 ### How it works
