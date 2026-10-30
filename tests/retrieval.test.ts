@@ -18,12 +18,14 @@ describe("retrieve (BM25)", () => {
     expect(hasSeaView).toBe(true);
   });
 
-  it("returns results for weight limit question", () => {
-    const results = retrieve("What is the weight limit for tandem skydiving?", 4);
+  it("returns results for weight limit question retrieving contact.md chunk", () => {
+    const results = retrieve("What is the weight limit for a tandem jump?", 4);
     expect(results.length).toBeGreaterThan(0);
-    // Should find content mentioning weight
-    const hasWeight = results.some((r) => r.text.toLowerCase().includes("weight"));
-    expect(hasWeight).toBe(true);
+    const contactChunk = results.find(
+      (r) => r.sourceUrl.includes("/contact") || r.sourceId.includes("contact")
+    );
+    expect(contactChunk).toBeDefined();
+    expect(contactChunk?.text.toLowerCase()).toContain("100 kg");
   });
 
   it("returns results for contact info", () => {

@@ -85,3 +85,8 @@
   5. Send "Can I see a video of the jump?" and verify HTML5 video player loads.
   6. Navigate to `/knowledge` and confirm 7 verified sources are listed.
   7. Run a query in the `/knowledge` Test Panel and verify trace metadata, BM25 scores, and context display.
+
+---
+
+## Source Alignment & Copy Verification
+- **Done**: Grounded weight/age questions in `contact.md` (100 kg, 18+ with ID) and Mount Abu sources. Removed "purposely unanswerable" references across README, footer notice, test chips, and mock model. Added verification for unlisted parking questions. Restricted contact details strictly to verbatim sources (+91 95357 68554 and WhatsApp) in system prompt and docs. Cleaned page copy, removed stray asterisk in hero badge, and added retrieval test for weight chunk. All 55 tests pass and Next.js production build succeeds with 0 errors.
