@@ -92,7 +92,7 @@ All knowledge usable by the chatbot comes from static markdown snapshots capture
 3. `mount-abu-tandem-skydiving.md` - Mount Abu experience details in Rajasthan.
 4. `pattaya.md` - Pattaya regional destination guide.
 5. `cancellations.md` - Weather delay policies, rescheduling terms, and refund guidelines.
-6. `contact.md` - Official email (crew@greedyadventures.com), phone (+66 61 585 0055), and dropzone address.
+6. `contact.md` - Official phone (+91 95357 68554), WhatsApp contact, and dropzone location.
 7. `about.md` - Company background and safety philosophy.
 
 Runtime web crawling is disabled. If a fact is absent from these sources (such as dropzone parking availability), the assistant explicitly states that the detail is not listed and directs users to contact the crew.
