@@ -192,10 +192,11 @@ Run the automated test suite with:
 npm test
 ```
 
-The 73 tests cover:
+The 74 tests cover:
 - Intent detection keywords and false-positive guards (`tests/intent.test.ts`)
 - BM25 retrieval ranking and short follow-up query expansion (`tests/retrieval.test.ts`)
 - 18 benchmark question retrieval accuracy with location tagging (`tests/retrieval-cases.test.ts`)
+- Full pipeline benchmark evaluation across 18 question scenarios (`tests/benchmarks-eval.test.ts`)
 - Media registry lookups and URL allowlist enforcement (`tests/registry.test.ts`)
 - Zod request body validation (`tests/schemas.test.ts`)
 - Mock model pipeline across the four assignment prompts (`tests/pipeline.test.ts`)

@@ -63,7 +63,7 @@ export function HeroSection() {
               href="https://www.greedyadventures.com/greedy/films/sea-view-studio-hero.mp4"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] items-center gap-2 text-xs font-medium text-slate-300 hover:text-white transition py-2 px-3"
+              className="inline-flex min-h-[44px] items-center gap-2 text-xs font-medium text-slate-300 hover:text-white transition py-2 px-3 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white">
                 <Play className="w-3 h-3 fill-current ml-0.5" aria-hidden="true" />

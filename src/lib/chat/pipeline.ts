@@ -124,7 +124,7 @@ export async function prepare(messages: UIMessage[]): Promise<PipelineContext> {
     tools = {};
     if (intent.brochure) (tools as Record<string, unknown>).getBrochure = getBrochure;
     if (intent.video) (tools as Record<string, unknown>).getVideo = getVideo;
-    toolChoice = "required";
+    toolChoice = "auto";
   }
 
   // Build context
