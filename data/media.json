@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": "sea-view-video-hero",
+      "type": "video",
+      "title": "Sea View Skydiving: main video of the jump",
+      "url": "https://www.greedyadventures.com/greedy/films/sea-view-studio-hero.mp4",
+      "sourceUrl": "https://www.greedyadventures.com/experiences/sea-view-skydiving",
+      "isDemo": false,
+      "description": "Main video of the jump at Pattaya dropzone.",
+      "duration": "1:00",
+      "thumbnailUrl": "https://pub-89f493a2b50b4e43b99552a737bef138.r2.dev/offerings/apex-gallery/tandem-with-sea-view.webp"
+    },
+    {
+      "id": "sea-view-brochure-pdf",
+      "type": "pdf",
+      "title": "Sea View Skydiving Experience Brochure (Demo material)",
+      "url": "/media/sea-view-skydiving-brochure.pdf",
+      "sourceUrl": "https://www.greedyadventures.com/experiences/sea-view-skydiving",
+      "isDemo": true,
+      "description": "Demo material brochure containing facts from the Sea View page: 3 packages, 5-step plan, and experience highlights.",
+      "fileSize": "135 KB"
+    }
+  ]
+}
