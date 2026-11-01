@@ -13,12 +13,12 @@ interface IntentRule {
 const RULES: IntentRule[] = [
   {
     key: "brochure",
-    pattern: /\b(brochure|pdf|flyer|leaflet)\b/i,
+    pattern: /\b(brochure|pdf|flyer|leaflet|info[\s-]+sheet)\b/i,
     label: "brochure",
   },
   {
     key: "video",
-    pattern: /\b(video|footage|clip|watch)\b/i,
+    pattern: /\b(video|footage|clip|reel|film|watch)\b/i,
     label: "video",
   },
 ];

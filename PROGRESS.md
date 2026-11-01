@@ -96,3 +96,18 @@
 
 ## Task 3 & 4: Polish, Benchmark Execution, Accessibility & Final Checks
 - **Done**: Added focus-visible rings to hero video link and brochure download button. Verified tab order and 44px tap targets across selection panel and chat modal launcher. Configured multi-step `toolChoice: "auto"` allowing text follow-ups in tool calling. Executed all 18 benchmark questions against pipeline and verified 100% pass rate. Verified `.env.local` is strictly gitignored and verified 0 API secrets in git history. All 74 tests pass and Next.js production build succeeds with 0 errors.
+
+## Task 1: Reliable Chat Media Responses
+- **Done**: Added requested brochure and video intent phrases and tests. The chat executes intent-matched server tools and streams media cards with a short reply even when Gemini does not select a tool.
+- **Decisions**: Kept the existing PDF and video cards. Media intent rules determine which server tool results are sent.
+- **Live check**: The Gemini text-only request returned without tools; media tool calls did not stream within four minutes. The intent-based server fallback passed all three media prompt stream checks.
+- **Validation**: All 92 tests pass and `npm run build` succeeds. The PDF has Open and Download links and the video fallback link is labelled as requested.
+- **Next**: Task 2 retrieval, sources, and live answer checks.
+
+### How it works
+1. The intent detector matches exact whole words for brochure and video requests.
+2. Package questions with no media words continue through the live or mock language model.
+3. Brochure or video intent selects only the matching server tool result.
+4. The chat stream sends tool input and output parts for assistant-ui card rendering.
+5. A short text sentence is sent for each available or unavailable requested item.
+6. The existing card components render the PDF links or video player and fallback link.

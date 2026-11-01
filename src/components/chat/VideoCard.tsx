@@ -60,7 +60,7 @@ export function VideoCard({ title, url, isDemo = false, description }: VideoCard
                 rel="noopener noreferrer"
                 className="mt-1.5 inline-flex items-center gap-1 font-medium text-brand-teal underline hover:text-brand-teal/80"
               >
-                Watch video on greedyadventures.com
+                Watch the video on greedyadventures.com
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>

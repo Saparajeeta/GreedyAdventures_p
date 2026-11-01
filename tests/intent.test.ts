@@ -2,6 +2,31 @@ import { describe, it, expect } from "vitest";
 import { detectMediaIntent } from "@/lib/media/intent";
 
 describe("detectMediaIntent", () => {
+  it.each([
+    ["brochure", "Please send the brochure.", true, false],
+    ["pdf", "Can I get a PDF?", true, false],
+    ["flyer", "Do you have a flyer?", true, false],
+    ["leaflet", "I need the leaflet.", true, false],
+    ["info sheet", "Can you send an info sheet?", true, false],
+    ["send me a brochure", "Send me a brochure.", true, false],
+    ["can you send the brochure", "Can you send the brochure?", true, false],
+    ["video", "Can you send a video?", false, true],
+    ["footage", "I want to see footage.", false, true],
+    ["clip", "Show me a clip.", false, true],
+    ["reel", "Can I see a reel?", false, true],
+    ["film", "Show me the film.", false, true],
+    ["watch", "I want to watch.", false, true],
+    ["see a video", "Can I see a video?", false, true],
+    ["show me a video", "Show me a video.", false, true],
+    ["video of the experience", "Video of the experience, please.", false, true],
+    ["both", "Send me the brochure and a video.", true, true],
+    ["plain package question", "What is included in the package?", false, false],
+  ])("%s intent", (_name, text, brochure, video) => {
+    const result = detectMediaIntent(text);
+    expect(result.brochure).toBe(brochure);
+    expect(result.video).toBe(video);
+  });
+
   it("detects brochure keyword", () => {
     const r = detectMediaIntent("Can I get the brochure?");
     expect(r.brochure).toBe(true);

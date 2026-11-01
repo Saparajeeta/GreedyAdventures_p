@@ -63,17 +63,25 @@ export function createMockModel(): LanguageModelV4 {
       const lowerQuery = lastUserText.toLowerCase();
 
       // Check if tools were already executed in a previous step of this multi-step turn
-      const alreadyCalledTools = messages.some((m) => m.role === "tool");
-
-      // Decide which tools to call
+      const alreadyCalledTools = new Set(
+        messages.flatMap((message) => {
+          if (message.role !== "tool" || !Array.isArray(message.content)) return [];
+          return message.content.flatMap((part) => {
+            const result = part as { type?: string; toolName?: string };
+            return result.type === "tool-result" && result.toolName
+              ? [result.toolName]
+              : [];
+          });
+        })
+      );
       const wantsBrochure =
-        !alreadyCalledTools &&
         toolNames.includes("getBrochure") &&
-        /brochure|pdf|flyer|leaflet/.test(lowerQuery);
+        !alreadyCalledTools.has("getBrochure") &&
+        /\b(brochure|pdf|flyer|leaflet|info[\s-]+sheet)\b/.test(lowerQuery);
       const wantsVideo =
-        !alreadyCalledTools &&
         toolNames.includes("getVideo") &&
-        /video|footage|clip|watch/.test(lowerQuery);
+        !alreadyCalledTools.has("getVideo") &&
+        /\b(video|footage|clip|reel|film|watch)\b/.test(lowerQuery);
 
       const content: LanguageModelV4Content[] = [];
 
@@ -84,8 +92,7 @@ export function createMockModel(): LanguageModelV4 {
           toolName: "getBrochure",
           input: "{}",
         });
-      }
-      if (wantsVideo) {
+      } else if (wantsVideo) {
         content.push({
           type: "tool-call",
           toolCallId: "mock-video-call",
@@ -109,8 +116,12 @@ export function createMockModel(): LanguageModelV4 {
 
       // Generate answer
       let answer = "";
-      if (alreadyCalledTools) {
-        answer = "Here is the requested media for Sea View Skydiving.";
+      if (alreadyCalledTools.size > 0) {
+        const sentences = [
+          alreadyCalledTools.has("getBrochure") ? "Here is the brochure." : "",
+          alreadyCalledTools.has("getVideo") ? "Here is the video." : "",
+        ].filter(Boolean);
+        answer = sentences.join(" ");
       } else if (/parking|park your car/.test(lowerQuery)) {
         answer =
           "Information about parking is not listed in our website sources. Please contact the Greedy Adventures crew directly on WhatsApp or call +91 95357 68554 for assistance.";

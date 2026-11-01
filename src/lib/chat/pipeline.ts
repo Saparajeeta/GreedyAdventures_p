@@ -91,11 +91,25 @@ Rules:
 - If nothing in the SOURCES answers the question, say so plainly and direct the user to contact Greedy Adventures. Use only contact details (phone/WhatsApp) found word for word in the SOURCES.
 - Never invent prices, limits, dates, policies, or contact details.
 - Be concise.
-- For media requests: call the appropriate tool, then add one short descriptive sentence.
+- For each requested media item, call its required tool and add one separate short sentence, such as "Here is the brochure." or "Here is the video."
 - If a tool returns unavailable, say so clearly.
 - Do not paste raw file URLs (the UI card will show them).
 
 ${sourcesBlock}`;
+}
+
+export function requireIntentTools(toolNames: string[]) {
+  return ({ steps }: { steps: Array<{ toolCalls: Array<{ toolName: string }> }> }) => {
+    const called = new Set(
+      steps.flatMap((step) => step.toolCalls.map((call) => call.toolName))
+    );
+    const remaining = toolNames.filter((toolName) => !called.has(toolName));
+
+    return {
+      activeTools: remaining,
+      toolChoice: remaining.length > 0 ? ("required" as const) : ("auto" as const),
+    };
+  };
 }
 
 export async function prepare(messages: UIMessage[]): Promise<PipelineContext> {
@@ -124,7 +138,7 @@ export async function prepare(messages: UIMessage[]): Promise<PipelineContext> {
     tools = {};
     if (intent.brochure) (tools as Record<string, unknown>).getBrochure = getBrochure;
     if (intent.video) (tools as Record<string, unknown>).getVideo = getVideo;
-    toolChoice = "auto";
+    toolChoice = "required";
   }
 
   // Build context
@@ -154,6 +168,7 @@ export async function runStream(messages: UIMessage[]): Promise<ReturnType<typeo
     messages: modelMessages,
     ...(tools ? { tools: tools as Parameters<typeof streamText>[0]["tools"] } : {}),
     ...(toolChoice ? { toolChoice } : {}),
+    ...(tools ? { prepareStep: requireIntentTools(Object.keys(tools)) } : {}),
     ...(tools ? { stopWhen: stepCountIs(5) } : {}),
     abortSignal: undefined,
   });
@@ -191,6 +206,7 @@ export async function runTest(question: string): Promise<TraceResult> {
       messages: modelMessages,
       ...(ctx.tools ? { tools: ctx.tools as Parameters<typeof generateText>[0]["tools"] } : {}),
       ...(ctx.toolChoice ? { toolChoice: ctx.toolChoice } : {}),
+      ...(ctx.tools ? { prepareStep: requireIntentTools(Object.keys(ctx.tools)) } : {}),
       ...(ctx.tools ? { stopWhen: stepCountIs(5) } : {}),
     });
 

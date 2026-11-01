@@ -3,6 +3,7 @@ import {
   streamText,
   convertToModelMessages,
   toUIMessageStream,
+  createUIMessageStream,
   createUIMessageStreamResponse,
   stepCountIs,
   type UIMessage,
@@ -10,8 +11,16 @@ import {
 import { ChatBodySchema } from "@/lib/schemas";
 import { prepare } from "@/lib/chat/pipeline";
 import { getModel, getModelId, isMockMode } from "@/lib/chat/model";
+import { getBrochureResult, getVideoResult } from "@/lib/chat/tools";
 
 export const maxDuration = 30;
+
+type MediaFallback = {
+  toolName: "getBrochure" | "getVideo";
+  result: Awaited<ReturnType<typeof getBrochureResult>>;
+  sentence: string;
+  unavailableSentence: string;
+};
 
 export async function GET() {
   return NextResponse.json({
@@ -40,6 +49,70 @@ export async function POST(req: NextRequest) {
 
   try {
     const ctx = await prepare(messages);
+
+    if (ctx.intent.brochure || ctx.intent.video) {
+      const mediaResults: MediaFallback[] = [];
+      if (ctx.intent.brochure) {
+        mediaResults.push({
+          toolName: "getBrochure",
+          result: await getBrochureResult(),
+          sentence: "Here is the brochure.",
+          unavailableSentence: "The brochure is not available.",
+        });
+      }
+      if (ctx.intent.video) {
+        mediaResults.push({
+          toolName: "getVideo",
+          result: await getVideoResult(),
+          sentence: "Here is the video.",
+          unavailableSentence: "The video is not available.",
+        });
+      }
+
+      const sources = ctx.chunks.map((chunk) => ({
+        title: chunk.sourceTitle,
+        url: chunk.sourceUrl,
+      }));
+      const stream = createUIMessageStream({
+        originalMessages: messages,
+        execute: ({ writer }) => {
+          writer.write({
+            type: "start",
+            messageMetadata: { custom: { sources } },
+          });
+          for (const media of mediaResults) {
+            const toolCallId = crypto.randomUUID();
+            writer.write({
+              type: "tool-input-available",
+              toolCallId,
+              toolName: media.toolName,
+              input: {},
+            });
+            writer.write({
+              type: "tool-output-available",
+              toolCallId,
+              output: media.result,
+            });
+          }
+
+          const textId = crypto.randomUUID();
+          const answer = mediaResults
+            .map((media) =>
+              media.result.available
+                ? media.sentence
+                : media.unavailableSentence
+            )
+            .join(" ");
+          writer.write({ type: "text-start", id: textId });
+          writer.write({ type: "text-delta", id: textId, delta: answer });
+          writer.write({ type: "text-end", id: textId });
+          writer.write({ type: "finish" });
+        },
+      });
+
+      return createUIMessageStreamResponse({ stream });
+    }
+
     const model = await getModel();
 
     const modelMessages = await convertToModelMessages(messages, {
