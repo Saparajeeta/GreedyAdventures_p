@@ -97,7 +97,7 @@ export interface RetrievedChunk {
   score: number;
 }
 
-export function retrieve(query: string, k = 6): RetrievedChunk[] {
+export function retrieve(query: string, k = 5): RetrievedChunk[] {
   buildIndex();
   const indexed = _indexed!;
   const idf = _idf!;

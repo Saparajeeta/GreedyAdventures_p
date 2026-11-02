@@ -1,4 +1,4 @@
-import { streamText, generateText, convertToModelMessages, stepCountIs } from "ai";
+import { streamText, generateText, convertToModelMessages } from "ai";
 import type { UIMessage } from "ai";
 import { retrieve, type RetrievedChunk } from "@/lib/knowledge";
 import { detectMediaIntent, type MediaIntent } from "@/lib/media/intent";
@@ -7,12 +7,12 @@ import { getBrochure, getVideo } from "./tools";
 import { getModel, getModelId, isMockMode } from "./model";
 import type { MediaItem } from "@/lib/schemas";
 
-const MAX_HISTORY = 12;
+const MAX_HISTORY = 6;
 
 export interface PipelineContext {
   system: string;
-  tools: Record<string, unknown> | undefined;
-  toolChoice: "required" | "auto" | undefined;
+  tools?: Record<string, unknown>;
+  toolChoice?: "required" | "auto";
   chunks: RetrievedChunk[];
   intent: MediaIntent;
   contextSentToModel: string;
@@ -118,7 +118,16 @@ export async function prepare(messages: UIMessage[]): Promise<PipelineContext> {
     capped.map((m) => ({ role: m.role, content: m.parts }))
   );
 
-  const chunks = retrievalQuery ? retrieve(retrievalQuery, 6) : [];
+  const retrieved = retrievalQuery ? retrieve(retrievalQuery, 5) : [];
+
+  // Limit to top 5 passages and about 3,500 characters
+  let charCount = 0;
+  const chunks: RetrievedChunk[] = [];
+  for (const chunk of retrieved.slice(0, 5)) {
+    if (charCount + chunk.text.length > 3800 && chunks.length > 0) break;
+    chunks.push(chunk);
+    charCount += chunk.text.length;
+  }
 
   // Intent detection — use last user message text
   const lastUser = [...capped].reverse().find((m) => m.role === "user");
@@ -154,20 +163,18 @@ export async function prepare(messages: UIMessage[]): Promise<PipelineContext> {
 
 /** Run the pipeline for streaming chat. */
 export async function runStream(messages: UIMessage[]): Promise<ReturnType<typeof streamText>> {
-  const { system, tools, toolChoice } = await prepare(messages);
+  const { system } = await prepare(messages);
   const model = await getModel();
 
-  const modelMessages = await convertToModelMessages(messages, { tools: tools as Parameters<typeof convertToModelMessages>[1] extends { tools?: infer T } ? T : never });
+  const modelMessages = await convertToModelMessages(messages);
 
   return streamText({
     model,
     system,
     messages: modelMessages,
+    maxRetries: 0,
+    maxOutputTokens: 600,
     providerOptions: { google: { thinkingConfig: { thinkingLevel: "minimal" } } },
-    ...(tools ? { tools: tools as Parameters<typeof streamText>[0]["tools"] } : {}),
-    ...(toolChoice ? { toolChoice } : {}),
-    ...(tools ? { prepareStep: requireIntentTools(Object.keys(tools)) } : {}),
-    ...(tools ? { stopWhen: stepCountIs(5) } : {}),
     abortSignal: undefined,
   });
 }
@@ -187,14 +194,12 @@ export async function runTest(question: string): Promise<TraceResult> {
   const ctx = await prepare(mockMessages);
   const model = await getModel();
 
-  const modelMessages = await convertToModelMessages(mockMessages, {
-    tools: ctx.tools as Parameters<typeof convertToModelMessages>[1] extends { tools?: infer T } ? T : never,
-  });
+  const modelMessages = await convertToModelMessages(mockMessages);
 
   let answer = "";
-  let mediaSelected: { pdf: MediaItem | null; video: MediaItem | null } = {
-    pdf: null,
-    video: null,
+  const mediaSelected: { pdf: MediaItem | null; video: MediaItem | null } = {
+    pdf: ctx.intent.brochure ? selectMedia("pdf") : null,
+    video: ctx.intent.video ? selectMedia("video") : null,
   };
 
   try {
@@ -202,35 +207,14 @@ export async function runTest(question: string): Promise<TraceResult> {
       model,
       system: ctx.system,
       messages: modelMessages,
+      maxRetries: 0,
+      maxOutputTokens: 600,
       providerOptions: { google: { thinkingConfig: { thinkingLevel: "minimal" } } },
-      ...(ctx.tools ? { tools: ctx.tools as Parameters<typeof generateText>[0]["tools"] } : {}),
-      ...(ctx.toolChoice ? { toolChoice: ctx.toolChoice } : {}),
-      ...(ctx.tools ? { prepareStep: requireIntentTools(Object.keys(ctx.tools)) } : {}),
-      ...(ctx.tools ? { stopWhen: stepCountIs(5) } : {}),
     });
 
     answer = result.text;
-
-    // Collect media from tool results
-    for (const step of result.steps ?? []) {
-      for (const toolResult of step.toolResults ?? []) {
-        const r = toolResult.output as { available: boolean; item?: MediaItem };
-        if (r?.available && r.item) {
-          if (r.item.type === "pdf") mediaSelected.pdf = r.item;
-          if (r.item.type === "video") mediaSelected.video = r.item;
-        }
-      }
-    }
   } catch (err) {
     answer = `Error: ${err instanceof Error ? err.message : "Unknown error"}`;
-  }
-
-  // Fall back to selectMedia for intent-matched types that pipeline would show
-  if (ctx.intent.brochure && !mediaSelected.pdf) {
-    mediaSelected.pdf = selectMedia("pdf");
-  }
-  if (ctx.intent.video && !mediaSelected.video) {
-    mediaSelected.video = selectMedia("video");
   }
 
   const latencyMs = Date.now() - start;

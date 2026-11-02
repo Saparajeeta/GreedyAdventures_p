@@ -4,7 +4,6 @@ import {
   convertToModelMessages,
   toUIMessageStream,
   createUIMessageStreamResponse,
-  stepCountIs,
   type UIMessage,
 } from "ai";
 import { ChatBodySchema } from "@/lib/schemas";
@@ -43,19 +42,14 @@ export async function POST(req: NextRequest) {
     const ctx = await prepare(messages);
     const model = await getModel();
 
-    const modelMessages = await convertToModelMessages(messages, {
-      tools: ctx.tools as Parameters<typeof convertToModelMessages>[1] extends { tools?: infer T } ? T : never,
-    });
+    const modelMessages = await convertToModelMessages(messages);
 
     const result = streamText({
       model,
       system: ctx.system,
       messages: modelMessages,
-      ...(ctx.tools
-        ? { tools: ctx.tools as Parameters<typeof streamText>[0]["tools"] }
-        : {}),
-      ...(ctx.toolChoice ? { toolChoice: ctx.toolChoice } : {}),
-      ...(ctx.tools ? { stopWhen: stepCountIs(5) } : {}),
+      maxRetries: 0,
+      maxOutputTokens: 600,
       abortSignal: req.signal,
     });
 
@@ -67,7 +61,6 @@ export async function POST(req: NextRequest) {
 
     const uiStream = toUIMessageStream({
       stream: result.stream,
-      tools: ctx.tools as Parameters<typeof toUIMessageStream>[0]["tools"],
       messageMetadata: sources.length > 0 ? () => ({ custom: { sources } }) : undefined,
     });
 
