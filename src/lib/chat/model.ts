@@ -123,6 +123,8 @@ function wrapStreamForErrors(
   params: Parameters<LanguageModelV4["doStream"]>[0]
 ): { stream: ReadableStream<LanguageModelV4StreamPart>; warnings?: unknown[] } {
   let emittedAny = false;
+  let emittedText = "";
+  let emittedToolCall = false;
   const reader = streamResult.stream.getReader();
 
   const stream = new ReadableStream<LanguageModelV4StreamPart>({
@@ -137,10 +139,12 @@ function wrapStreamForErrors(
           if (value.type === "text-delta" || value.type === "tool-call") {
             emittedAny = true;
           }
+          if (value.type === "text-delta") emittedText += value.delta;
+          if (value.type === "tool-call") emittedToolCall = true;
           controller.enqueue(value);
         }
 
-        if (!emittedAny) {
+        if (!emittedText.trim() && !emittedToolCall) {
           const failure = classifyModelError(new Error("empty text from the model"));
           logFailure(failure.category, failure.status);
           const fallback = createMockModel({ fallbackReason: failure.reason });
@@ -155,7 +159,7 @@ function wrapStreamForErrors(
 
         controller.close();
       } catch (err) {
-        if (!emittedAny) {
+        if (!emittedText.trim() && !emittedToolCall) {
           const failure = classifyModelError(err);
           logFailure(failure.category, failure.status);
           try {

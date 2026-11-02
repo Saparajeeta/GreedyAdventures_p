@@ -6,7 +6,7 @@ import {
 } from "@/lib/chat/failure";
 import { wrapWithFallback, resetModel } from "@/lib/chat/model";
 import { MockLanguageModelV4 } from "ai/test";
-import { generateText, stepCountIs } from "ai";
+import { generateText, stepCountIs, streamText } from "ai";
 import { z } from "zod";
 
 describe("failure classification & reasons", () => {
@@ -141,6 +141,43 @@ describe("wrapped fallback model behavior", () => {
     expect(result.text).toMatch(/VIP.*14,000/);
   });
 
+  it("an empty streamed reply triggers the empty-text fallback", async () => {
+    const emptyModel = new MockLanguageModelV4({
+      provider: "mock-empty",
+      modelId: "empty-gemini",
+      doStream: async () => ({
+        stream: new ReadableStream({
+          start(controller) {
+            controller.enqueue({ type: "stream-start", warnings: [] });
+            controller.enqueue({ type: "text-start", id: "text-1" });
+            controller.enqueue({ type: "text-delta", id: "text-1", delta: "   " });
+            controller.enqueue({ type: "text-end", id: "text-1" });
+            controller.enqueue({
+              type: "finish",
+              finishReason: { unified: "stop", raw: "stop" },
+              usage: {
+                inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 },
+                outputTokens: { total: 0, text: 0, reasoning: 0 },
+              },
+            });
+            controller.close();
+          },
+        }),
+      }),
+    });
+
+    const wrapped = wrapWithFallback(emptyModel);
+    const result = await streamText({
+      model: wrapped,
+      prompt: "How much is VIP?",
+    });
+
+    expect(await result.text).toContain(
+      "Fallback answer (The AI service returned no text for this question.). Here is the closest text from the Greedy Adventures website:"
+    );
+    expect(await result.text).toMatch(/VIP.*14,000/);
+  });
+
   it("an unrelated question does not trigger the fallback", async () => {
     const failingModel = new MockLanguageModelV4({
       provider: "mock-failing",
@@ -161,4 +198,3 @@ describe("wrapped fallback model behavior", () => {
     expect(result.text).not.toContain("Fallback answer");
   });
 });
-

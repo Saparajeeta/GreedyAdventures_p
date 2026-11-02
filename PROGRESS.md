@@ -139,3 +139,18 @@
 4. It opens separately so the app stays open.
 5. `noopener noreferrer` isolates the new tab.
 6. A visible focus ring supports keyboard navigation.
+
+## Live Gemini Empty-Reply Reliability
+- **Done**: Applied minimum Gemini thinking and routed empty streamed replies through the existing fallback.
+- **Decisions**: Used the installed Google provider type `thinkingConfig.thinkingLevel: "minimal"`.
+- **Next**: None.
+- **Verification**: `npm test` passed (115 tests); `npm run build` passed.
+- **Scope**: No `maxOutputTokens` setting existed, so none was added or changed.
+
+### How it works
+1. Both chat streaming and knowledge tests ask Google Gemini for minimal thinking.
+2. The model wrapper accumulates streamed text and tracks tool calls.
+3. Whitespace-only and empty text do not count as a visible reply.
+4. An empty stream is classified as `empty_text` and logged without sensitive data.
+5. The existing mock fallback generates the user-visible response from retrieved sources.
+6. A streaming regression test verifies the empty-reply fallback.
