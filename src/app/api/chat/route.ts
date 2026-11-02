@@ -3,7 +3,6 @@ import {
   streamText,
   convertToModelMessages,
   toUIMessageStream,
-  createUIMessageStream,
   createUIMessageStreamResponse,
   stepCountIs,
   type UIMessage,
@@ -11,16 +10,9 @@ import {
 import { ChatBodySchema } from "@/lib/schemas";
 import { prepare } from "@/lib/chat/pipeline";
 import { getModel, getModelId, isMockMode } from "@/lib/chat/model";
-import { getBrochureResult, getVideoResult } from "@/lib/chat/tools";
+import { classifyModelError, logFailure } from "@/lib/chat/failure";
 
 export const maxDuration = 30;
-
-type MediaFallback = {
-  toolName: "getBrochure" | "getVideo";
-  result: Awaited<ReturnType<typeof getBrochureResult>>;
-  sentence: string;
-  unavailableSentence: string;
-};
 
 export async function GET() {
   return NextResponse.json({
@@ -49,70 +41,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const ctx = await prepare(messages);
-
-    if (ctx.intent.brochure || ctx.intent.video) {
-      const mediaResults: MediaFallback[] = [];
-      if (ctx.intent.brochure) {
-        mediaResults.push({
-          toolName: "getBrochure",
-          result: await getBrochureResult(),
-          sentence: "Here is the brochure.",
-          unavailableSentence: "The brochure is not available.",
-        });
-      }
-      if (ctx.intent.video) {
-        mediaResults.push({
-          toolName: "getVideo",
-          result: await getVideoResult(),
-          sentence: "Here is the video.",
-          unavailableSentence: "The video is not available.",
-        });
-      }
-
-      const sources = ctx.chunks.map((chunk) => ({
-        title: chunk.sourceTitle,
-        url: chunk.sourceUrl,
-      }));
-      const stream = createUIMessageStream({
-        originalMessages: messages,
-        execute: ({ writer }) => {
-          writer.write({
-            type: "start",
-            messageMetadata: { custom: { sources } },
-          });
-          for (const media of mediaResults) {
-            const toolCallId = crypto.randomUUID();
-            writer.write({
-              type: "tool-input-available",
-              toolCallId,
-              toolName: media.toolName,
-              input: {},
-            });
-            writer.write({
-              type: "tool-output-available",
-              toolCallId,
-              output: media.result,
-            });
-          }
-
-          const textId = crypto.randomUUID();
-          const answer = mediaResults
-            .map((media) =>
-              media.result.available
-                ? media.sentence
-                : media.unavailableSentence
-            )
-            .join(" ");
-          writer.write({ type: "text-start", id: textId });
-          writer.write({ type: "text-delta", id: textId, delta: answer });
-          writer.write({ type: "text-end", id: textId });
-          writer.write({ type: "finish" });
-        },
-      });
-
-      return createUIMessageStreamResponse({ stream });
-    }
-
     const model = await getModel();
 
     const modelMessages = await convertToModelMessages(messages, {
@@ -145,22 +73,11 @@ export async function POST(req: NextRequest) {
 
     return createUIMessageStreamResponse({ stream: uiStream });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "";
-    if (msg.includes("429") || msg.toLowerCase().includes("rate limit")) {
-      return NextResponse.json(
-        { error: "Rate limit reached. Please try again in a moment." },
-        { status: 429 }
-      );
-    }
-    if (msg.includes("timeout") || msg.includes("ETIMEDOUT")) {
-      return NextResponse.json(
-        { error: "The request timed out. Please try again." },
-        { status: 504 }
-      );
-    }
+    const failure = classifyModelError(err);
+    logFailure(failure.category, failure.status);
     return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
-      { status: 500 }
+      { error: failure.reason },
+      { status: failure.status && failure.status >= 400 && failure.status < 600 ? failure.status : 500 }
     );
   }
 }
