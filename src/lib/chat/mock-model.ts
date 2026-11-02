@@ -119,7 +119,9 @@ export function createMockModel(options?: MockModelOptions): LanguageModelV4 {
 
       // Build extractive answer from sources
       let rawAnswer = "";
-      if (alreadyCalledTools.size > 0) {
+      if (/^(hi|hello|hey|good\s+(morning|afternoon|evening)|howdy)\b/i.test(lowerQuery.trim())) {
+        rawAnswer = "Hello! How can I help you today with Sea View Skydiving or Greedy Adventures?";
+      } else if (alreadyCalledTools.size > 0) {
         const hasBrochure = alreadyCalledTools.has("getBrochure");
         const hasVideo = alreadyCalledTools.has("getVideo");
         if (hasBrochure && hasVideo) {
@@ -131,7 +133,7 @@ export function createMockModel(options?: MockModelOptions): LanguageModelV4 {
         }
       } else if (/\bparking\b|\bpark\b/.test(lowerQuery)) {
         rawAnswer =
-          "That detail is not listed on the Greedy Adventures pages I have, so I do not want to guess. Please contact Greedy Adventures by phone at +91 95357 68554 or on WhatsApp.";
+          "I don't have that detail on the website pages I can see. Please contact Greedy Adventures by phone at +91 95357 68554 or on WhatsApp.";
       } else if (/\b(mount abu|india)\b/.test(lowerQuery)) {
         rawAnswer =
           "Mount Abu tandem jump options are ₹29,999 per person for Handycam Video and ₹39,999 per person for Outside Cameraman, both excluding GST.";
