@@ -39,3 +39,27 @@ export function detectMediaIntent(text: string): MediaIntent {
 
   return result;
 }
+
+/**
+ * Returns true if the user message is solely asking for media (brochure, video),
+ * with no other questions or requests.
+ */
+export function isMediaOnlyRequest(text: string): boolean {
+  const intent = detectMediaIntent(text);
+  if (!intent.brochure && !intent.video) return false;
+
+  const cleaned = text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .replace(
+      /\b(brochure|brochures|pdf|pdfs|flyer|flyers|leaflet|leaflets|info[\s-]+sheet|video|videos|footage|clip|clips|reel|film|watch)\b/g,
+      " "
+    )
+    .replace(
+      /\b(can|could|would|will|please|send|give|show|share|get|let|see|have|i|me|us|you|to|the|a|an|and|or|of|for|about|with|on|in|at|it|is|any|some|more|info|information|details|experience|skydiving|skydive|jump|sea|view|greedy|adventures|thanks|thank|hi|hello|hey)\b/g,
+      " "
+    )
+    .trim();
+
+  return cleaned.length === 0;
+}
