@@ -118,6 +118,20 @@
 - **Validation**: `npm run build` and `npx tsc --noEmit` pass; all 102 tests pass.
 - **Next**: None.
 
+## Task: System and Content Failure Handling
+- **Done**: Added failure mapping in failure.ts and wrapped the live model to provide labelled fallbacks on API errors. Added exact reason sentences in the system prompt for missing details, off-topic prompts, location ambiguity, and unavailable files.
+- **Decisions**: Used wrapLanguageModel to catch model failures and stream fallback answers extracted from top retrieved sources. Preserved media tool cards under live model failure. Off-topic questions use the standard redirect without the fallback label.
+- **Validation**: All 114 tests pass across 9 test files; Next.js production build succeeds with 0 errors.
+- **Next**: None.
+
+### How it works
+1. When a live model call fails, classifyModelError maps the error status to a plain reason string.
+2. The server logs one single line with only the failure category and status.
+3. The wrapped model invokes the mock model with the failure reason to generate an extractive answer.
+4. The output begins with a labelled fallback line followed by the closest text from website sources.
+5. Off-topic queries return a clear redirect sentence and do not show the fallback label.
+6. The chat stream returns media tool cards for brochure and video requests even under live failure.
+
 ### How it works
 1. The link sits beneath the Pattaya dropzone address.
 2. Its destination is the Google Maps URL provided by the user.

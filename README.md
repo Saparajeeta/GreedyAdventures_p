@@ -180,9 +180,26 @@ The read-only knowledge dashboard can be accessed in two ways:
 - **Query**: "What is the weight limit for a tandem jump?"
 - **Expected Outcome**: The assistant answers from `contact.md` that the tandem skydiving weight limit is 100 kg (with valid ID, age 18 or older), noting weight must be proportional to height.
 
-### 8. Failure Handling
-- **Query**: Simulate rate limits or network errors.
-- **Expected Outcome**: The chat surfaces a clear error notice with a functional "Retry" button.
+### 8. Fallback and Reason Messages
+
+When the live AI model cannot answer due to system failures, the application gracefully provides a labelled fallback response generated from the top retrieved knowledge passages rather than showing a blank screen.
+
+Supported system reasons:
+- **Invalid API key (400 or 401)**: `"The AI service did not accept this site's access key."`
+- **Blocked project (403)**: `"The AI service has blocked access for this project."`
+- **Model unavailable (404)**: `"The configured AI model is not available."`
+- **Rate limit reached (429)**: `"The AI service's free usage limit was reached for now."`
+- **Timeout or network disconnect**: `"The AI service did not respond in time."`
+- **Empty response text**: `"The AI service returned no text for this question."`
+- **Offline mock mode**: `"No AI model is connected, so this is a demo answer."`
+
+How to trigger failures locally:
+- **Trigger Rate Limit (429)**: Send any question with the default key when the daily quota is exhausted. The response starts with: `Fallback answer (The AI service's free usage limit was reached for now.). Here is the closest text from the Greedy Adventures website:`
+- **Trigger Invalid Key**: In `.env.local`, set `GOOGLE_GENERATIVE_AI_API_KEY=AIzaSyFakeKeyInvalid12345` and `MOCK_MODE=false`. Restart the server. The response starts with: `Fallback answer (The AI service did not accept this site's access key.)...`
+- **Trigger Missing Model (404)**: In `.env.local`, set `GEMINI_MODEL=gemini-nonexistent-model`. Restart the server. The response starts with: `Fallback answer (The configured AI model is not available.)...`
+- **Trigger Mock Mode**: In `.env.local`, set `MOCK_MODE=true`. The response starts with: `Fallback answer (No AI model is connected, so this is a demo answer.)...`
+- **Trigger Off-Topic Question**: Ask `"Write me a python script"`. The bot redirects with: `"That is outside what I can help with. I can help with Sea View Skydiving and Greedy Adventures: packages, prices, what is included, the day plan, location, and sending the brochure or video."` without triggering the fallback line.
+- **Trigger Missing Detail**: Ask `"Is parking available at the dropzone?"`. The bot replies: `"That detail is not listed on the Greedy Adventures pages I have, so I do not want to guess."` followed by phone and WhatsApp details.
 
 ---
 
@@ -194,11 +211,12 @@ Run the automated test suite with:
 npm test
 ```
 
-The 102 tests cover:
+The 114 tests cover:
 - Intent detection keywords and false-positive guards (`tests/intent.test.ts`)
 - BM25 ranking, search-only query expansion, location isolation, weak-match fallback, and short follow-ups (`tests/retrieval.test.ts`)
 - 18 benchmark question retrieval accuracy with location tagging (`tests/retrieval-cases.test.ts`)
 - Full pipeline benchmark evaluation across 18 question scenarios (`tests/benchmarks-eval.test.ts`)
+- Failure reason classification, fallback wrapping, and error isolation (`tests/failure.test.ts`)
 - Media registry lookups and URL allowlist enforcement (`tests/registry.test.ts`)
 - Zod request body validation (`tests/schemas.test.ts`)
 - Mock model pipeline across the four assignment prompts (`tests/pipeline.test.ts`)
