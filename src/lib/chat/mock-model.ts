@@ -8,6 +8,7 @@ import { isUnrelatedQuestion, UNRELATED_REDIRECT_MESSAGE } from "./failure";
 
 export interface MockModelOptions {
   fallbackReason?: string;
+  fallbackNotice?: string;
 }
 
 /**
@@ -190,9 +191,12 @@ export function createMockModel(options?: MockModelOptions): LanguageModelV4 {
           "I can answer questions about Sea View Skydiving packages, prices, inclusions, the day plan, location, and sending the brochure or video.";
       }
 
-      const answer = fallbackReason
-        ? `Fallback answer (${fallbackReason}). Here is the closest text from the Greedy Adventures website:\n${rawAnswer}`
-        : rawAnswer;
+      let answer = rawAnswer;
+      if (options?.fallbackNotice) {
+        answer = `${rawAnswer}\n\n${options.fallbackNotice}`;
+      } else if (fallbackReason) {
+        answer = `Fallback answer (${fallbackReason}). Here is the closest text from the Greedy Adventures website:\n${rawAnswer}`;
+      }
 
       content.push({ type: "text", text: answer });
 
