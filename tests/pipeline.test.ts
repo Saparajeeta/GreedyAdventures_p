@@ -124,8 +124,8 @@ describe("mock model answer quality", () => {
     expect(hasContact).toBe(true);
   });
 
-  it("missing information like parking says it is not listed", async () => {
+  it("missing information like parking says detail is not available", async () => {
     const trace = await runTest("Is parking available at the dropzone?");
-    expect(trace.answer.toLowerCase()).toContain("not listed");
+    expect(trace.answer.toLowerCase()).toContain("don't have that detail");
   });
 });

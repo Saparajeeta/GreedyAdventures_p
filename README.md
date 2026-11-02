@@ -7,7 +7,7 @@ A Next.js prototype for the Greedy Adventures "Sea View Skydiving" experience in
 - **Experience Page (`/`)**: Redesigned page built with Next.js App Router, Tailwind CSS, Playfair Display, and Inter. Includes package comparison (Eco, Deluxe, VIP), the 5-step plan timeline, jump highlights, and accessible semantic markup.
 - **Grounded Assistant**: Floating chat modal powered by assistant-ui and Vercel AI SDK v7. Answers strictly from static knowledge snapshots, calls server tools for media, displays clickable source chips, and falls back gracefully when information is unavailable.
 - **Auditable Media Tools**: Serves jump video players from official media URLs and generated PDF brochures with Open and Download actions.
-- **Knowledge View (`/knowledge`)**: Read-only dashboard displaying loaded source files, chunk statistics, allowed media items, and an interactive test panel exposing exact retrieved BM25 chunks and model prompts.
+- **Knowledge View (`/knowledge`)**: A plain-language page showing what the assistant knows: loaded website pages, files it can share, and a "Try a question" panel that runs the same process as the chat.
 
 ---
 
@@ -42,6 +42,15 @@ GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
 
 # Model identifier (default: gemini-3.8-flash)
 GEMINI_MODEL=gemini-3.8-flash
+
+# Optional: Groq API key for backup provider. If omitted, only Google is used.
+GROQ_API_KEY=your_groq_api_key_here
+
+# Groq model identifier (default: openai/gpt-oss-120b)
+GROQ_MODEL=openai/gpt-oss-120b
+
+# Primary provider: google or groq (default: google)
+LLM_PRIMARY=google
 
 # Force mock mode even if an API key is present: true | false
 MOCK_MODE=false
@@ -79,6 +88,9 @@ npm start
 | :--- | :--- | :--- | :--- |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | No | `""` | Gemini API key. If unset or empty, the app defaults to deterministic mock mode. |
 | `GEMINI_MODEL` | No | `gemini-3.8-flash` | The Gemini model name passed to `@ai-sdk/google`. |
+| `GROQ_API_KEY` | No | `""` | Groq API key. If set, Groq acts as a backup (or primary, depending on `LLM_PRIMARY`). |
+| `GROQ_MODEL` | No | `openai/gpt-oss-120b` | The Groq model name passed to `@ai-sdk/groq`. |
+| `LLM_PRIMARY` | No | `google` | Which provider to try first: `google` or `groq`. The other is the backup. |
 | `MOCK_MODE` | No | `false` | When set to `true`, forces the offline mock model regardless of API key presence. |
 
 ---
@@ -106,13 +118,13 @@ Runtime web crawling is disabled. If a fact is absent from these sources (such a
        |
        v
 [prepare(messages)]
-       |-- History capped to last 12 messages
+       |-- History capped to last 6 messages
        |-- Short query expansion (<6 words appends previous user query)
        |
        +---> [Intent Detection]
        |          |-- Word-boundary regex matching: brochure, video
        |          v
-       |     Active Tools (getBrochure, getVideo)
+       |     Media cards added by server (no model tool calls)
        |
        +---> [BM25 Retrieval]
                   |-- Heading-based chunking (<=1000 chars)
@@ -120,7 +132,7 @@ Runtime web crawling is disabled. If a fact is absent from these sources (such a
                   |-- Location labels; weak Pattaya matches add Sea View and contact chunks
                   |-- Scoring (k1=1.2, b=0.75)
                   v
-             Top 6 Ranked Chunks
+             Top 5 passages (~3,500 chars max)
        |
        v
 [System Prompt Assembly]
@@ -128,14 +140,16 @@ Runtime web crawling is disabled. If a fact is absent from these sources (such a
        |-- Appends ## SOURCES block with retrieved chunks
        |
        v
-[Model Execution]
-       |-- If MOCK_MODE or no API key -> Deterministic Mock Model
-       |-- If Live Key -> Google Gemini (configurable, default gemini-3.8-flash)
+[Model Execution (1 call per message, maxRetries: 0, maxOutputTokens: 600)]
+       |-- If MOCK_MODE or no keys -> Deterministic Mock Model
+       |-- Primary provider (Google or Groq, set by LLM_PRIMARY)
+       |-- On failure: tries the other provider
+       |-- If both fail: extractive answer from passages + muted busy notice
        |
        v
 [Response Stream]
        |-- Text stream with markdown rendering
-       |-- Server tool invocations (getBrochure / getVideo)
+       |-- Media-only requests: cards served directly, no model call
        |-- Per-message source metadata chips
 ```
 
@@ -143,9 +157,11 @@ Runtime web crawling is disabled. If a fact is absent from these sources (such a
 
 ## How to Open the Knowledge View
 
-The read-only knowledge dashboard can be accessed in two ways:
+The knowledge page shows what information the assistant has access to:
 1. Direct URL: Navigate to `/knowledge` in your browser.
-2. From the Page: Click the "Knowledge View" link located in the top navigation bar, the experience footer, or the chat modal header.
+2. From the Page: Click the "Knowledge view" link in the footer or chat modal header.
+
+The page lists all loaded website pages (with full text), files the assistant can share (brochure and video), and a "Try a question" panel. Technical details are collapsed by default.
 
 ---
 
@@ -211,15 +227,16 @@ Run the automated test suite with:
 npm test
 ```
 
-The 114 tests cover:
-- Intent detection keywords and false-positive guards (`tests/intent.test.ts`)
+The 132 tests across 12 test files cover:
+- Intent detection keywords, media-only requests, and false-positive guards (`tests/intent.test.ts`, `tests/media-intent.test.ts`)
 - BM25 ranking, search-only query expansion, location isolation, weak-match fallback, and short follow-ups (`tests/retrieval.test.ts`)
 - 18 benchmark question retrieval accuracy with location tagging (`tests/retrieval-cases.test.ts`)
 - Full pipeline benchmark evaluation across 18 question scenarios (`tests/benchmarks-eval.test.ts`)
-- Failure reason classification, fallback wrapping, and error isolation (`tests/failure.test.ts`)
+- Failure reason classification, provider failover candidates, fallback wrapping, and error isolation (`tests/failure.test.ts`, `tests/failover.test.ts`)
+- Conversational chat behavior, greetings, and off-topic redirection (`tests/chat-behavior.test.ts`)
 - Media registry lookups and URL allowlist enforcement (`tests/registry.test.ts`)
 - Zod request body validation (`tests/schemas.test.ts`)
-- Mock model pipeline across the four assignment prompts (`tests/pipeline.test.ts`)
+- Mock model pipeline across the assignment prompts (`tests/pipeline.test.ts`)
 - Error fallbacks and empty retrieval handling
 
 ---
