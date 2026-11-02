@@ -90,6 +90,14 @@ export function HighlightsSection() {
               <address className="not-italic text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
                 95 M.4, Chakphong, Klaeng District, Rayong 21190, Thailand
               </address>
+              <a
+                href="https://www.google.com/maps/place/SKYDIVING+THAILAND+(Ocean+view+official+site)+world+class+dropzone/@12.6750791,101.5538923,17z/data=!3m1!4b1!4m6!3m5!1s0x310295442b4a4543:0xc513f30b21d6d945!8m2!3d12.6750791!4d101.5538923!16s%2Fg%2F11mvsjh4yz?hl=en&entry=ttu&g_ep=EgoyMDI2MTAyOC4wIKXMDSoASAFQAw%3D%3D"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex min-h-[44px] items-center rounded-md text-sm font-semibold text-brand-teal underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
+              >
+                Open location in Google Maps
+              </a>
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                 <span>Operated by:</span>
                 <span className="font-bold text-brand-teal uppercase">Dropzone Thailand</span>

@@ -111,3 +111,17 @@
 4. The chat stream sends tool input and output parts for assistant-ui card rendering.
 5. A short text sentence is sent for each available or unavailable requested item.
 6. The existing card components render the PDF links or video player and fallback link.
+
+## Task: Google Maps Location Link
+- **Done**: Added a direct Google Maps link to the existing location card.
+- **Decision**: The map opens in a new tab with safe external-link attributes.
+- **Validation**: `npm run build` and `npx tsc --noEmit` pass; all 102 tests pass.
+- **Next**: None.
+
+### How it works
+1. The link sits beneath the Pattaya dropzone address.
+2. Its destination is the Google Maps URL provided by the user.
+3. The visible label identifies Google Maps.
+4. It opens separately so the app stays open.
+5. `noopener noreferrer` isolates the new tab.
+6. A visible focus ring supports keyboard navigation.

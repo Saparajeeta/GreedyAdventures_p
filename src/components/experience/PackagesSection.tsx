@@ -104,17 +104,15 @@ export function PackagesSection() {
                     : "border border-slate-200"
                 }`}
               >
-                {/* Top Popular Badge */}
-                {pkg.badgeText && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-brand-teal px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm flex items-center gap-1">
-                    <Star className="w-3 h-3 text-brand-amber fill-brand-amber" aria-hidden="true" />
-                    <span>{pkg.badgeText}</span>
-                  </div>
-                )}
-
                 <div>
                   {/* Package Image */}
                   <div className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-brand-teal/5">
+                    {pkg.badgeText && (
+                      <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-brand-teal px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm">
+                        <Star className="w-3 h-3 text-brand-amber fill-brand-amber" aria-hidden="true" />
+                        <span>{pkg.badgeText}</span>
+                      </div>
+                    )}
                     <SafeImage
                       src={pkg.image}
                       alt={`${pkg.name} package preview image`}
