@@ -119,9 +119,9 @@
 - **Next**: None.
 
 ## Task: System and Content Failure Handling
-- **Done**: Added failure mapping in failure.ts and wrapped the live model to provide labelled fallbacks on API errors. Added exact reason sentences in the system prompt for missing details, off-topic prompts, location ambiguity, and unavailable files.
-- **Decisions**: Used wrapLanguageModel to catch model failures and stream fallback answers extracted from top retrieved sources. Preserved media tool cards under live model failure. Off-topic questions use the standard redirect without the fallback label.
-- **Validation**: All 114 tests pass across 9 test files; Next.js production build succeeds with 0 errors.
+- **Done**: Added failure mapping in failure.ts and wrapped the live model to provide labelled fallbacks on API errors. Added exact reason sentences in the system prompt for missing details, off-topic prompts, location ambiguity, and unavailable files. Added 12s live model timeout in model.ts to prevent long upstream hangs.
+- **Decisions**: Used wrapLanguageModel to catch model failures and stream fallback answers extracted from top retrieved sources. Wrapped doGenerate, doStream, and the initial stream read with a 12-second timeout so upstream latency triggers the timeout reason and fallback instead of freezing the route. Preserved media tool cards under live model failure. Off-topic questions use the standard redirect without the fallback label.
+- **Validation**: All 114 tests pass across 9 test files; Next.js production build succeeds with 0 errors. POST /api/chat verified live.
 - **Next**: None.
 
 ### How it works
