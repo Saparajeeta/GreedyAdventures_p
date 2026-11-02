@@ -154,3 +154,16 @@
 4. An empty stream is classified as `empty_text` and logged without sensitive data.
 5. The existing mock fallback generates the user-visible response from retrieved sources.
 6. A streaming regression test verifies the empty-reply fallback.
+
+## Single Model Call Architecture, Failover, and Plain Knowledge View
+- **Done**: Removed model tool-calling and multi-step loops; server intent rules directly emit PDF/video cards without model calls for media requests; integrated Groq with automatic failover and extractive fallback; updated system prompt for natural chat; rebuilt /knowledge with non-technical phrasing; added 18 unit tests (132 total passing).
+- **Decisions**: Selected Groq via @ai-sdk/groq as backup provider; used createUIMessageStream writer for direct server card emission; simplified knowledge view by removing search jargon.
+- **Next**: None. Production ready.
+
+### How it works
+1. Incoming messages are capped to 6 items and retrieved passages to 5 (about 3,500 characters).
+2. Media intent rules directly inject brochure and video cards into the stream without model calls.
+3. Chat queries invoke a single model call with zero tool definitions and maxRetries set to 0.
+4. The provider failover wrapper tries the primary provider and switches to the backup on error.
+5. If both providers fail, an extractive answer with a muted busy notice is streamed.
+6. The /knowledge page presents loaded pages, shareable files, and test queries in plain words.
