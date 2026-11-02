@@ -19,6 +19,17 @@ const STOPWORDS = new Set([
 // BM25 params
 const K1 = 1.2;
 const B = 0.75;
+const WEAK_MATCH_SCORE = 1.25;
+const QUERY_EXPANSIONS: Array<{ pattern: RegExp; terms: string }> = [
+  { pattern: /\b(cost|price|fee|how much)\b/i, terms: "price per person" },
+  { pattern: /\b(kids|child|age)\b/i, terms: "age" },
+  { pattern: /\b(photos|camera|gopro|footage)\b/i, terms: "video photos handycam" },
+  { pattern: /\b(rain|weather|wind)\b/i, terms: "weather" },
+  { pattern: /\b(refund|cancel|reschedule)\b/i, terms: "cancellation" },
+  { pattern: /\b(wear|clothes|shoes)\b/i, terms: "what to wear" },
+  { pattern: /\b(pick up|transfer|transport)\b/i, terms: "pickup" },
+  { pattern: /\b(safe|safety|risk)\b/i, terms: "safety instructors" },
+];
 
 function tokenize(text: string): string[] {
   return text
@@ -26,6 +37,13 @@ function tokenize(text: string): string[] {
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .filter((t) => t.length > 1 && !STOPWORDS.has(t));
+}
+
+function expandQuery(query: string): string {
+  const expansions = QUERY_EXPANSIONS
+    .filter(({ pattern }) => pattern.test(query))
+    .map(({ terms }) => terms);
+  return [query, ...expansions].join(" ");
 }
 
 interface IndexedChunk {
@@ -79,16 +97,22 @@ export interface RetrievedChunk {
   score: number;
 }
 
-export function retrieve(query: string, k = 4): RetrievedChunk[] {
+export function retrieve(query: string, k = 6): RetrievedChunk[] {
   buildIndex();
   const indexed = _indexed!;
   const idf = _idf!;
-  const queryTokens = tokenize(query);
+  const queryTokens = tokenize(expandQuery(query));
 
-  if (queryTokens.length === 0 || indexed.length === 0) return [];
+  if (!query.trim() || indexed.length === 0) return [];
 
-  const scores: { chunk: Chunk; score: number }[] = indexed.map(
-    ({ chunk, tf, length }) => {
+  const mountAbuQuestion = /\b(mount abu|india)\b/i.test(query);
+  const scores: { chunk: Chunk; score: number }[] = indexed
+    .filter(({ chunk }) =>
+      mountAbuQuestion
+        ? chunk.location === "Mount Abu"
+        : chunk.location !== "Mount Abu"
+    )
+    .map(({ chunk, tf, length }) => {
       let score = 0;
       for (const term of queryTokens) {
         const termIdf = idf.get(term) ?? 0;
@@ -98,10 +122,9 @@ export function retrieve(query: string, k = 4): RetrievedChunk[] {
         score += termIdf * (norm / denom);
       }
       return { chunk, score };
-    }
-  );
+    });
 
-  return scores
+  const ranked = scores
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, k)
@@ -114,6 +137,32 @@ export function retrieve(query: string, k = 4): RetrievedChunk[] {
       text: chunk.text,
       score,
     }));
+
+  if (ranked[0]?.score >= WEAK_MATCH_SCORE || mountAbuQuestion) {
+    return ranked;
+  }
+
+  const fallbackChunks = indexed
+    .map(({ chunk }) => chunk)
+    .filter((chunk) =>
+      ["sea-view-skydiving", "contact"].includes(chunk.sourceId)
+    );
+  const included = new Set(ranked.map((chunk) => chunk.sourceId + chunk.heading + chunk.text));
+  for (const chunk of fallbackChunks) {
+    const key = chunk.sourceId + chunk.heading + chunk.text;
+    if (included.has(key)) continue;
+    ranked.push({
+      sourceId: chunk.sourceId,
+      sourceTitle: chunk.sourceTitle,
+      sourceUrl: chunk.sourceUrl,
+      location: chunk.location,
+      heading: chunk.heading,
+      text: chunk.text,
+      score: 0,
+    });
+    included.add(key);
+  }
+  return ranked;
 }
 
 /** Reset index cache (for tests). */

@@ -116,13 +116,15 @@ Runtime web crawling is disabled. If a fact is absent from these sources (such a
        |
        +---> [BM25 Retrieval]
                   |-- Heading-based chunking (<=1000 chars)
-                  |-- Stopword filtering and scoring (k1=1.2, b=0.75)
+                  |-- Search-only query expansion and stopword filtering
+                  |-- Location labels; weak Pattaya matches add Sea View and contact chunks
+                  |-- Scoring (k1=1.2, b=0.75)
                   v
-             Top 4 Ranked Chunks
+             Top 6 Ranked Chunks
        |
        v
 [System Prompt Assembly]
-       |-- Injects strict refusal instructions
+       |-- Injects grounded answers, location and unrelated-question instructions
        |-- Appends ## SOURCES block with retrieved chunks
        |
        v
@@ -192,9 +194,9 @@ Run the automated test suite with:
 npm test
 ```
 
-The 74 tests cover:
+The 102 tests cover:
 - Intent detection keywords and false-positive guards (`tests/intent.test.ts`)
-- BM25 retrieval ranking and short follow-up query expansion (`tests/retrieval.test.ts`)
+- BM25 ranking, search-only query expansion, location isolation, weak-match fallback, and short follow-ups (`tests/retrieval.test.ts`)
 - 18 benchmark question retrieval accuracy with location tagging (`tests/retrieval-cases.test.ts`)
 - Full pipeline benchmark evaluation across 18 question scenarios (`tests/benchmarks-eval.test.ts`)
 - Media registry lookups and URL allowlist enforcement (`tests/registry.test.ts`)
