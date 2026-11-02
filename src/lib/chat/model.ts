@@ -13,6 +13,26 @@ import type {
 // LanguageModelV4StreamPart is used in wrapStreamForErrors return type and ReadableStream generics
 
 const DEFAULT_MODEL = "gemini-3.8-flash";
+const LIVE_TIMEOUT_MS = 12000;
+
+function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      const err = new Error("The request timed out");
+      (err as { code?: string }).code = "ETIMEDOUT";
+      reject(err);
+    }, ms);
+    Promise.resolve(promise)
+      .then((val) => {
+        clearTimeout(timer);
+        resolve(val);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
 
 let _google: ((modelId: string) => LanguageModelV4) | null = null;
 
@@ -63,7 +83,7 @@ export function wrapWithFallback(baseModel: LanguageModelV4): LanguageModelV4 {
     middleware: {
       wrapGenerate: async ({ doGenerate, params }) => {
         try {
-          const res = await doGenerate();
+          const res = await withTimeout(doGenerate(), LIVE_TIMEOUT_MS);
           const textParts = res.content.filter((c) => c.type === "text") as Array<{
             type: "text";
             text: string;
@@ -85,7 +105,7 @@ export function wrapWithFallback(baseModel: LanguageModelV4): LanguageModelV4 {
       },
       wrapStream: async ({ doStream, params }) => {
         try {
-          const res = await doStream();
+          const res = await withTimeout(doStream(), LIVE_TIMEOUT_MS);
           return wrapStreamForErrors(res, params);
         } catch (err) {
           const failure = classifyModelError(err);
@@ -109,7 +129,10 @@ function wrapStreamForErrors(
     async start(controller) {
       try {
         while (true) {
-          const { done, value } = await reader.read();
+          const readPromise = emittedAny
+            ? reader.read()
+            : withTimeout(reader.read(), LIVE_TIMEOUT_MS);
+          const { done, value } = await readPromise;
           if (done) break;
           if (value.type === "text-delta" || value.type === "tool-call") {
             emittedAny = true;
